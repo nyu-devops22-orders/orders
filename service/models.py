@@ -77,7 +77,7 @@ class Order(db.Model):
     # Table Schema
     ##################################################
     id = db.Column(db.Integer, primary_key=True)
-    date = db.Column(db.Datetime, nullable = False)
+    date = db.Column(db.DateTime, nullable = False)
     customer = db.Column(db.Integer, nullable=False)
     total = db.Column(db.Float, nullable = False)
     status = db.Column(db.String(63), nullable=False)

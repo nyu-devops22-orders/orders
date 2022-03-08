@@ -17,7 +17,7 @@ Test Factory to make fake objects for testing
 """
 import factory
 from factory.fuzzy import FuzzyChoice
-from service.models import Pet, Gender
+from service.models import Orders, Order_itemsco
 
 ######################################################################
 #  O R D E R - -  F A C T O R Y
@@ -35,7 +35,7 @@ class OrderFactory(factory.Factory):
     customer = factory.Faker("ean")         # Currently generating a BARCODE (EAN) because it's similar to an ID
     order_date = factory.Faker("date")
     total = factory.Faker("randomDigit")
-    emp = factory.Faker("ean")              # Currently generating a BARCODE (EAN) because it's similar to an ID
+    name = factory.Faker("name")              
 
 ######################################################################
 #  O R D E R _ I T E M S  - - S U B F A C T O R Y
