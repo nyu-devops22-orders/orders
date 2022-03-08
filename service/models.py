@@ -57,7 +57,7 @@ db = SQLAlchemy()
 
 def init_db(app):
     """Initialize the SQLAlchemy app"""
-    Orders.init_db(app)          # Main Orders DB
+    Orders.init_db(app)         # Main Orders DB
     Order_items.init_db(app)    # Order_items DB (related via Order_ID)
 
 
@@ -81,7 +81,7 @@ class Order(db.Model):
     customer = db.Column(db.Integer, nullable=False)
     total = db.Column(db.Float, nullable = False)
     status = db.Column(db.String(63), nullable=False)
-    name = db.Column(db.String(63), nullable=False)
+    emp = db.Column(db.Integer, nullable=False)
     
     
     ##################################################
@@ -112,7 +112,7 @@ class Order(db.Model):
 
     def delete(self):
         """Removes an ORDER from the data store"""
-        logger.info("Deleting %s", self.name)
+        logger.info("Deleting %s", self.emp)
         db.session.delete(self)
         db.session.commit()
 
@@ -124,7 +124,7 @@ class Order(db.Model):
             "date": self.date,
             "total": self.total,
             "status": self.status,
-            "employee": self.name,  
+            "employee id": self.emp,  
         }
 
     def deserialize(self, data: dict):
@@ -134,23 +134,18 @@ class Order(db.Model):
             data (dict): A dictionary containing the Order data
         """
         try:
-            self.name = data["name"]
-            self.category = data["category"]
-            if isinstance(data["available"], bool):
-                self.available = data["available"]
-            else:
-                raise DataValidationError(
-                    "Invalid type for boolean [available]: "
-                    + str(type(data["available"]))
-                )
-            self.gender = getattr(Gender, data["gender"])  # create enum from string
+            self.customer = data["customer"]
+            self.date = data["date"]
+            self.total = data["total"]
+            self.emp = data["emp"]
+            self.status = data["status"]
         except AttributeError as error:
             raise DataValidationError("Invalid attribute: " + error.args[0])
         except KeyError as error:
-            raise DataValidationError("Invalid pet: missing " + error.args[0])
+            raise DataValidationError("Invalid order: missing " + error.args[0])
         except TypeError as error:
             raise DataValidationError(
-                "Invalid pet: body of request contained bad or no data " + str(error)
+                "Invalid order: body of request contained bad or no data " + str(error)
             )
         return self
 
@@ -234,8 +229,6 @@ class Order(db.Model):
         logger.info("Processing status query for %s ...", status)
         return cls.query.filter(cls.status == status)
 
-
-
 class Order_items(db.Model):
     """
     Class that represents ITEMS in an ORDER
@@ -252,4 +245,8 @@ class Order_items(db.Model):
     product_id = db.Column(db.Integer, nullable = False)
     quantity = db.Column(db.Float, nullable = False)
     cost = db.Column(db.Float, nullable = False)
-    cost_total = db.Column(db.Float, nullable = False)
+    cost_total = db.Column(db.Float, nullable = False) 
+    
+ 
+
+        
