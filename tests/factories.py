@@ -53,4 +53,4 @@ class OrderItemsFactory(factory.Factory):
     product_id = factory.Faker("randomDigit")   # product_ID from products db - might need to change randomDigit (grabbed from google)
     quantity = factory.Faker("int")             # <--- Not sure if this is right, but need to make a random order quantity
     cost = factory.Faker("randomDigit")         # <---- random cost for each item
-    total = quantity * cost                     # total cost of the line item
+    total = factory.Faker("int")                    # total cost of the line item
