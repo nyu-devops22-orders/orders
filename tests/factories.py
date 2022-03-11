@@ -17,7 +17,7 @@ Test Factory to make fake objects for testing
 """
 import factory
 from factory.fuzzy import FuzzyChoice
-from service.models import Orders, Order_itemsco
+from service.models import Order, Order_items
 
 ######################################################################
 #  O R D E R - -  F A C T O R Y
@@ -29,7 +29,7 @@ class OrderFactory(factory.Factory):
     class Meta:  # pylint: disable=too-few-public-methods
         """Maps factory to data model"""
 
-        model = Orders
+        model = Order
 
     id = factory.Sequence(lambda n: n)
     customer = factory.Faker("ean")         # Currently generating a BARCODE (EAN) because it's similar to an ID
