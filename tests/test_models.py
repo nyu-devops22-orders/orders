@@ -20,14 +20,14 @@ Test cases can be run with:
     coverage report -m
 
 While debugging just these tests it's convenient to use this:
-    nosetests --stop tests/test_pets.py:TestPetModel
+    nosetests --stop tests/test_orders.py:TestOrderModel
 
 """
 import os
 import logging
 import unittest
 from werkzeug.exceptions import NotFound
-from service.models import Pet, Gender, DataValidationError, db
+from service.models import Order, Order_items, DataValidationError, db
 from service import app
 from .factories import OrderFactory
 
@@ -40,7 +40,7 @@ DATABASE_URI = os.getenv(
 #  O R D E R   M O D E L   T E S T   C A S E S
 ######################################################################
 # pylint: disable=too-many-public-methods
-class TestPetModel(unittest.TestCase):
+class TestOrderModel(unittest.TestCase):
     """Test Cases for Order Model"""
 
     @classmethod
@@ -50,7 +50,7 @@ class TestPetModel(unittest.TestCase):
         app.config["DEBUG"] = False
         app.config["SQLALCHEMY_DATABASE_URI"] = DATABASE_URI
         app.logger.setLevel(logging.CRITICAL)
-        Pet.init_db(app)
+        Order.init_db(app)
 
     @classmethod
     def tearDownClass(cls):
@@ -71,79 +71,79 @@ class TestPetModel(unittest.TestCase):
     #  T E S T   C A S E S
     ######################################################################
 
-    def test_create_a_pet(self):
-        """Create a pet and assert that it exists"""
-        pet = Pet(name="Fido", category="dog", available=True, gender=Gender.MALE)
-        self.assertTrue(pet is not None)
-        self.assertEqual(pet.id, None)
-        self.assertEqual(pet.name, "Fido")
-        self.assertEqual(pet.category, "dog")
-        self.assertEqual(pet.available, True)
-        self.assertEqual(pet.gender, Gender.MALE)
-        pet = Pet(name="Fido", category="dog", available=False, gender=Gender.FEMALE)
-        self.assertEqual(pet.available, False)
-        self.assertEqual(pet.gender, Gender.FEMALE)
+    def test_create_a_order(self):
+        """Create a order and assert that it exists"""
+        order = Order(name="Fido", category="dog", available=True, gender=Gender.MALE)
+        self.assertTrue(order is not None)
+        self.assertEqual(order.id, None)
+        self.assertEqual(order.name, "Fido")
+        self.assertEqual(order.category, "dog")
+        self.assertEqual(order.available, True)
+        self.assertEqual(order.gender, Gender.MALE)
+        order = Order(name="Fido", category="dog", available=False, gender=Gender.FEMALE)
+        self.assertEqual(order.available, False)
+        self.assertEqual(order.gender, Gender.FEMALE)
 
-    def test_add_a_pet(self):
-        """Create a pet and add it to the database"""
-        pets = Pet.all()
-        self.assertEqual(pets, [])
-        pet = Pet(name="Fido", category="dog", available=True, gender=Gender.MALE)
-        self.assertTrue(pet is not None)
-        self.assertEqual(pet.id, None)
-        pet.create()
+    def test_add_a_order(self):
+        """Create a order and add it to the database"""
+        orders = Order.all()
+        self.assertEqual(orders, [])
+        order = Order(name="Fido", category="dog", available=True, gender=Gender.MALE)
+        self.assertTrue(order is not None)
+        self.assertEqual(order.id, None)
+        order.create()
         # Assert that it was assigned an id and shows up in the database
-        self.assertEqual(pet.id, 1)
-        pets = Pet.all()
-        self.assertEqual(len(pets), 1)
+        self.assertEqual(order.id, 1)
+        orders = Order.all()
+        self.assertEqual(len(orders), 1)
 
-    def test_update_a_pet(self):
-        """Update a Pet"""
-        pet = PetFactory()
-        logging.debug(pet)
-        pet.create()
-        logging.debug(pet)
-        self.assertEqual(pet.id, 1)
+    def test_update_a_order(self):
+        """Update a Order"""
+        order = OrderFactory()
+        logging.debug(order)
+        order.create()
+        logging.debug(order)
+        self.assertEqual(order.id, 1)
         # Change it an save it
-        pet.category = "k9"
-        original_id = pet.id
-        pet.update()
-        self.assertEqual(pet.id, original_id)
-        self.assertEqual(pet.category, "k9")
+        order.category = "k9"
+        original_id = order.id
+        order.update()
+        self.assertEqual(order.id, original_id)
+        self.assertEqual(order.category, "k9")
         # Fetch it back and make sure the id hasn't changed
         # but the data did change
-        pets = Pet.all()
-        self.assertEqual(len(pets), 1)
-        self.assertEqual(pets[0].id, 1)
-        self.assertEqual(pets[0].category, "k9")
+        orders = Order.all()
+        self.assertEqual(len(orders), 1)
+        self.assertEqual(orders[0].id, 1)
+        self.assertEqual(orders[0].category, "k9")
 
-    def test_delete_a_pet(self):
-        """Delete a Pet"""
-        pet = PetFactory()
-        pet.create()
-        self.assertEqual(len(Pet.all()), 1)
-        # delete the pet and make sure it isn't in the database
-        pet.delete()
-        self.assertEqual(len(Pet.all()), 0)
+    def test_delete_a_order(self):
+        """Delete a Order"""
+        order = OrderFactory()
+        order.create()
+        self.assertEqual(len(Order.all()), 1)
+        # delete the order and make sure it isn't in the database
+        order.delete()
+        self.assertEqual(len(Order.all()), 0)
 
-    def test_serialize_a_pet(self):
-        """Test serialization of a Pet"""
-        pet = PetFactory()
-        data = pet.serialize()
+    def test_serialize_a_order(self):
+        """Test serialization of a Order"""
+        order = OrderFactory()
+        data = order.serialize()
         self.assertNotEqual(data, None)
         self.assertIn("id", data)
-        self.assertEqual(data["id"], pet.id)
+        self.assertEqual(data["id"], order.id)
         self.assertIn("name", data)
-        self.assertEqual(data["name"], pet.name)
+        self.assertEqual(data["name"], order.name)
         self.assertIn("category", data)
-        self.assertEqual(data["category"], pet.category)
+        self.assertEqual(data["category"], order.category)
         self.assertIn("available", data)
-        self.assertEqual(data["available"], pet.available)
+        self.assertEqual(data["available"], order.available)
         self.assertIn("gender", data)
-        self.assertEqual(data["gender"], pet.gender.name)
+        self.assertEqual(data["gender"], order.gender.name)
 
-    def test_deserialize_a_pet(self):
-        """Test deserialization of a Pet"""
+    def test_deserialize_a_order(self):
+        """Test deserialization of a Order"""
         data = {
             "id": 1,
             "name": "Kitty",
@@ -151,118 +151,118 @@ class TestPetModel(unittest.TestCase):
             "available": True,
             "gender": "FEMALE",
         }
-        pet = Pet()
-        pet.deserialize(data)
-        self.assertNotEqual(pet, None)
-        self.assertEqual(pet.id, None)
-        self.assertEqual(pet.name, "Kitty")
-        self.assertEqual(pet.category, "cat")
-        self.assertEqual(pet.available, True)
-        self.assertEqual(pet.gender, Gender.FEMALE)
+        order = Order()
+        order.deserialize(data)
+        self.assertNotEqual(order, None)
+        self.assertEqual(order.id, None)
+        self.assertEqual(order.name, "Kitty")
+        self.assertEqual(order.category, "cat")
+        self.assertEqual(order.available, True)
+        self.assertEqual(order.gender, Gender.FEMALE)
 
     def test_deserialize_missing_data(self):
-        """Test deserialization of a Pet with missing data"""
+        """Test deserialization of a Order with missing data"""
         data = {"id": 1, "name": "Kitty", "category": "cat"}
-        pet = Pet()
-        self.assertRaises(DataValidationError, pet.deserialize, data)
+        order = Order()
+        self.assertRaises(DataValidationError, order.deserialize, data)
 
     def test_deserialize_bad_data(self):
         """Test deserialization of bad data"""
         data = "this is not a dictionary"
-        pet = Pet()
-        self.assertRaises(DataValidationError, pet.deserialize, data)
+        order = Order()
+        self.assertRaises(DataValidationError, order.deserialize, data)
 
     def test_deserialize_bad_available(self):
         """Test deserialization of bad available attribute"""
-        test_pet = PetFactory()
-        data = test_pet.serialize()
+        test_order = OrderFactory()
+        data = test_order.serialize()
         data["available"] = "true"
-        pet = Pet()
-        self.assertRaises(DataValidationError, pet.deserialize, data)
+        order = Order()
+        self.assertRaises(DataValidationError, order.deserialize, data)
 
     def test_deserialize_bad_gender(self):
         """Test deserialization of bad gender attribute"""
-        test_pet = PetFactory()
-        data = test_pet.serialize()
+        test_order = OrderFactory()
+        data = test_order.serialize()
         data["gender"] = "male"  # wrong case
-        pet = Pet()
-        self.assertRaises(DataValidationError, pet.deserialize, data)
+        order = Order()
+        self.assertRaises(DataValidationError, order.deserialize, data)
 
-    def test_find_pet(self):
-        """Find a Pet by ID"""
-        pets = PetFactory.create_batch(3)
-        for pet in pets:
-            pet.create()
-        logging.debug(pets)
+    def test_find_order(self):
+        """Find a Order by ID"""
+        orders = OrderFactory.create_batch(3)
+        for order in orders:
+            order.create()
+        logging.debug(orders)
         # make sure they got saved
-        self.assertEqual(len(Pet.all()), 3)
-        # find the 2nd pet in the list
-        pet = Pet.find(pets[1].id)
-        self.assertIsNot(pet, None)
-        self.assertEqual(pet.id, pets[1].id)
-        self.assertEqual(pet.name, pets[1].name)
-        self.assertEqual(pet.available, pets[1].available)
+        self.assertEqual(len(Order.all()), 3)
+        # find the 2nd order in the list
+        order = Order.find(orders[1].id)
+        self.assertIsNot(order, None)
+        self.assertEqual(order.id, orders[1].id)
+        self.assertEqual(order.name, orders[1].name)
+        self.assertEqual(order.available, orders[1].available)
 
     def test_find_by_category(self):
-        """Find Pets by Category"""
-        Pet(name="Fido", category="dog", available=True).create()
-        Pet(name="Kitty", category="cat", available=False).create()
-        pets = Pet.find_by_category("cat")
-        self.assertEqual(pets[0].category, "cat")
-        self.assertEqual(pets[0].name, "Kitty")
-        self.assertEqual(pets[0].available, False)
+        """Find orders by Category"""
+        Order(name="Fido", category="dog", available=True).create()
+        Order(name="Kitty", category="cat", available=False).create()
+        orders = Order.find_by_category("cat")
+        self.assertEqual(orders[0].category, "cat")
+        self.assertEqual(orders[0].name, "Kitty")
+        self.assertEqual(orders[0].available, False)
 
     def test_find_by_name(self):
-        """Find a Pet by Name"""
-        Pet(name="Fido", category="dog", available=True).create()
-        Pet(name="Kitty", category="cat", available=False).create()
-        pets = Pet.find_by_name("Kitty")
-        self.assertEqual(pets[0].category, "cat")
-        self.assertEqual(pets[0].name, "Kitty")
-        self.assertEqual(pets[0].available, False)
+        """Find a Order by Name"""
+        Order(name="Fido", category="dog", available=True).create()
+        Order(name="Kitty", category="cat", available=False).create()
+        orders = Order.find_by_name("Kitty")
+        self.assertEqual(orders[0].category, "cat")
+        self.assertEqual(orders[0].name, "Kitty")
+        self.assertEqual(orders[0].available, False)
 
     def test_find_by_availability(self):
-        """Find Pets by Availability"""
-        Pet(name="Fido", category="dog", available=True).create()
-        Pet(name="Kitty", category="cat", available=False).create()
-        Pet(name="Fifi", category="dog", available=True).create()
-        pets = Pet.find_by_availability(False)
-        pet_list = list(pets)
-        self.assertEqual(len(pet_list), 1)
-        self.assertEqual(pets[0].name, "Kitty")
-        self.assertEqual(pets[0].category, "cat")
-        pets = Pet.find_by_availability(True)
-        pet_list = list(pets)
-        self.assertEqual(len(pet_list), 2)
+        """Find orders by Availability"""
+        Order(name="Fido", category="dog", available=True).create()
+        Order(name="Kitty", category="cat", available=False).create()
+        Order(name="Fifi", category="dog", available=True).create()
+        orders = Order.find_by_availability(False)
+        order_list = list(orders)
+        self.assertEqual(len(order_list), 1)
+        self.assertEqual(orders[0].name, "Kitty")
+        self.assertEqual(orders[0].category, "cat")
+        orders = Order.find_by_availability(True)
+        order_list = list(orders)
+        self.assertEqual(len(order_list), 2)
 
     def test_find_by_gender(self):
-        """Find Pets by Gender"""
-        Pet(name="Fido", category="dog", available=True, gender=Gender.MALE).create()
-        Pet(
+        """Find orders by Gender"""
+        Order(name="Fido", category="dog", available=True, gender=Gender.MALE).create()
+        Order(
             name="Kitty", category="cat", available=False, gender=Gender.FEMALE
         ).create()
-        Pet(name="Fifi", category="dog", available=True, gender=Gender.MALE).create()
-        pets = Pet.find_by_gender(Gender.FEMALE)
-        pet_list = list(pets)
-        self.assertEqual(len(pet_list), 1)
-        self.assertEqual(pets[0].name, "Kitty")
-        self.assertEqual(pets[0].category, "cat")
-        pets = Pet.find_by_gender(Gender.MALE)
-        pet_list = list(pets)
-        self.assertEqual(len(pet_list), 2)
+        Order(name="Fifi", category="dog", available=True, gender=Gender.MALE).create()
+        orders = Order.find_by_gender(Gender.FEMALE)
+        order_list = list(orders)
+        self.assertEqual(len(order_list), 1)
+        self.assertEqual(orders[0].name, "Kitty")
+        self.assertEqual(orders[0].category, "cat")
+        orders = Order.find_by_gender(Gender.MALE)
+        order_list = list(orders)
+        self.assertEqual(len(order_list), 2)
 
     def test_find_or_404_found(self):
         """Find or return 404 found"""
-        pets = PetFactory.create_batch(3)
-        for pet in pets:
-            pet.create()
+        orders = OrderFactory.create_batch(3)
+        for order in orders:
+            order.create()
 
-        pet = Pet.find_or_404(pets[1].id)
-        self.assertIsNot(pet, None)
-        self.assertEqual(pet.id, pets[1].id)
-        self.assertEqual(pet.name, pets[1].name)
-        self.assertEqual(pet.available, pets[1].available)
+        order = Order.find_or_404(orders[1].id)
+        self.assertIsNot(order, None)
+        self.assertEqual(order.id, orders[1].id)
+        self.assertEqual(order.name, orders[1].name)
+        self.assertEqual(order.available, orders[1].available)
 
     def test_find_or_404_not_found(self):
         """Find or return 404 NOT found"""
-        self.assertRaises(NotFound, Pet.find_or_404, 0)
+        self.assertRaises(NotFound, Order.find_or_404, 0)
