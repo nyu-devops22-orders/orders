@@ -27,7 +27,7 @@ import os
 import logging
 import unittest
 from werkzeug.exceptions import NotFound
-from service.models import Order, Gender, DataValidationError, db
+from service.models import Order, Order_items, DataValidationError, db
 from service import app
 from .factories import OrderFactory
 
