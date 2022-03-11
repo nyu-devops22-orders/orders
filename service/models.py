@@ -57,7 +57,7 @@ db = SQLAlchemy()
 
 def init_db(app):
     """Initialize the SQLAlchemy app"""
-    Orders.init_db(app)          # Main Orders DB
+    Order.init_db(app)         # Main Orders DB
     Order_items.init_db(app)    # Order_items DB (related via Order_ID)
 
 
@@ -81,7 +81,7 @@ class Order(db.Model):
     customer = db.Column(db.Integer, nullable=False)
     total = db.Column(db.Float, nullable = False)
     status = db.Column(db.String(63), nullable=False)
-    name = db.Column(db.String(63), nullable=False)
+    emp = db.Column(db.Integer, nullable=False)
     
     
     ##################################################
@@ -112,7 +112,7 @@ class Order(db.Model):
 
     def delete(self):
         """Removes an ORDER from the data store"""
-        logger.info("Deleting %s", self.name)
+        logger.info("Deleting %s", self.emp)
         db.session.delete(self)
         db.session.commit()
 
@@ -124,7 +124,7 @@ class Order(db.Model):
             "date": self.date,
             "total": self.total,
             "status": self.status,
-            "employee": self.name,  
+            "employee id": self.emp,  
         }
 
     def deserialize(self, data: dict):
@@ -134,23 +134,18 @@ class Order(db.Model):
             data (dict): A dictionary containing the Order data
         """
         try:
-            self.name = data["name"]
-            self.category = data["category"]
-            if isinstance(data["available"], bool):
-                self.available = data["available"]
-            else:
-                raise DataValidationError(
-                    "Invalid type for boolean [available]: "
-                    + str(type(data["available"]))
-                )
-            self.gender = getattr(Gender, data["gender"])  # create enum from string
+            self.customer = data["customer"]
+            self.date = data["date"]
+            self.total = data["total"]
+            self.emp = data["emp"]
+            self.status = data["status"]
         except AttributeError as error:
             raise DataValidationError("Invalid attribute: " + error.args[0])
         except KeyError as error:
-            raise DataValidationError("Invalid pet: missing " + error.args[0])
+            raise DataValidationError("Invalid order: missing " + error.args[0])
         except TypeError as error:
             raise DataValidationError(
-                "Invalid pet: body of request contained bad or no data " + str(error)
+                "Invalid order: body of request contained bad or no data " + str(error)
             )
         return self
 
@@ -179,32 +174,32 @@ class Order(db.Model):
         return cls.query.all()
 
     @classmethod
-    def find(cls, order_id: int):
+    def find(cls, id: int):
         """Finds an ORDER by it's ID
 
-        :param order_id: the id of the ORDER to find
-        :type order_id: int
+        :param id: the id of the ORDER to find
+        :type id: int
 
-        :return: an instance with the order_id, or None if not found
+        :return: an instance with the id, or None if not found
         :rtype: ORDER
 
         """
-        logger.info("Processing lookup for id %s ...", order_id)
-        return cls.query.get(order_id)
+        logger.info("Processing lookup for id %s ...", id)
+        return cls.query.get(id)
 
     @classmethod
-    def find_or_404(cls, pet_id: int):
+    def find_or_404(cls, order_id: int):
         """Find an ORDER by it's id
 
-        :param order_id: the id of the ORDER to find
-        :type order_id: int
+        :param id: the id of the ORDER to find
+        :type id: int
 
-        :return: an instance with the order_id, or 404_NOT_FOUND if not found
+        :return: an instance with the id, or 404_NOT_FOUND if not found
         :rtype: ORDER
 
         """
-        logger.info("Processing lookup or 404 for id %s ...", order_id)
-        return cls.query.get_or_404(order_id)
+        logger.info("Processing lookup or 404 for id %s ...", id)
+        return cls.query.get_or_404(id)
 
     @classmethod
     def find_by_employee(cls, name: str) -> list:
@@ -234,8 +229,6 @@ class Order(db.Model):
         logger.info("Processing status query for %s ...", status)
         return cls.query.filter(cls.status == status)
 
-
-
 class Order_items(db.Model):
     """
     Class that represents ITEMS in an ORDER
@@ -251,5 +244,143 @@ class Order_items(db.Model):
     order_id = db.Column(db.Integer, nullable = False)          # Relate to orders DB somehow...
     product_id = db.Column(db.Integer, nullable = False)
     quantity = db.Column(db.Float, nullable = False)
-    cost = db.Column(db.Float, nullable = False)
-    cost_total = db.Column(db.Float, nullable = False)
+    price = db.Column(db.Float, nullable = False)
+    price_total = db.Column(db.Float, nullable = False) 
+    emp = db.Column(db.Integer, nullable=False)                 # adding this in event DIFFERENT employee edits and adds/removes items from order ; audit purposes
+    
+  ##################################################
+    # INSTANCE METHODS
+    ##################################################
+
+    def __repr__(self):
+        return "<Order %r id=[%s]>" % (self.order_id, self.product_id, self.quantity)
+
+    def create(self):
+        """
+        Creates an ORDER_ITEM to the database
+        """
+        logger.info("Creating %s", self.id)
+        # id must be none to generate next primary key
+        self.id = None  # pylint: disable=invalid-name
+        db.session.add(self)
+        db.session.commit()
+
+    def update(self):
+        """
+        Updates an ORDER to the database
+        """
+        logger.info("Saving %s", self.id)
+        if not self.id:
+            raise DataValidationError("Update called with empty ID field")
+        db.session.commit()
+
+    def delete(self):
+        """Removes an ORDER from the data store"""
+        logger.info("Deleting %s", self.id)
+        db.session.delete(self)
+        db.session.commit()
+
+    def serialize(self) -> dict:
+        """Serializes an ORDER into a dictionary"""
+        return {
+            "id": self.id,
+            "order_id": self.order_id,
+            "product id": self.product_id,
+            "quantity": self.quantity,
+            "item cost": self.price,
+            "total": self.price_total,
+            "employee": self.emp,
+
+        }
+
+    def deserialize(self, data: dict):
+        """
+        Deserializes an ORDER from a dictionary
+        Args:
+            data (dict): A dictionary containing the Order item data
+        """
+        try:
+            self.id = data["id"]
+            self.order_id = data["order_id"]
+            self.product_id = data["product_id"]
+            self.quantity = data["quantity"]
+            self.price = data["price"]
+            self.price_total = data["total"]
+            self.emp = data["employee"]
+        except AttributeError as error:
+            raise DataValidationError("Invalid attribute: " + error.args[0])
+        except KeyError as error:
+            raise DataValidationError("Invalid order: missing " + error.args[0])
+        except TypeError as error:
+            raise DataValidationError(
+                "Invalid order: body of request contained bad or no data " + str(error)
+            )
+        return self
+
+    ##################################################
+    # CLASS METHODS
+    ##################################################
+
+    @classmethod
+    def init_db(cls, app: Flask):
+        """Initializes the database session
+
+        :param app: the Flask app
+        :type data: Flask
+
+        """
+        logger.info("Initializing database")
+        # This is where we initialize SQLAlchemy from the Flask app
+        db.init_app(app)
+        app.app_context().push()
+        db.create_all()  # make our sqlalchemy tables
+
+    @classmethod
+    def all(cls) -> list:
+        """Returns all of the ORDER_ITEMS in the database"""
+        logger.info("Processing all ORDER ITEMS")
+        return cls.query.all()
+
+    @classmethod
+    def find(cls, id: int):
+        """Finds an ORDER ITEMS by it's ID
+
+        :param id: the id of the ORDER to find
+        :type id: int
+
+        :return: an instance with the id, or None if not found
+        :rtype: ORDER
+
+        """
+        logger.info("Processing lookup for id %s ...", id)
+        return cls.query.get(id)
+
+    @classmethod
+    def find_order(cls, order_id: int):
+        """Finds an ORDER ITEMS by it's parent ORDER ID
+
+        :param id: the id of the ORDER to find
+        :type id: int
+
+        :return: an instance with the id, or None if not found
+        :rtype: ORDER
+
+        """
+        logger.info("Processing lookup for id %s ...", order_id)
+        return cls.query.get(order_id)
+
+    @classmethod
+    def find_or_404(cls, id: int):
+        """Find an ORDER by it's id
+
+        :param id: the id of the ORDER to find
+        :type id: int
+
+        :return: an instance with the id, or 404_NOT_FOUND if not found
+        :rtype: ORDER
+
+        """
+        logger.info("Processing lookup or 404 for id %s ...", id)
+        return cls.query.get_or_404(id)
+
+        
