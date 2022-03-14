@@ -154,6 +154,25 @@ def delete_pets(pet_id):
 
 
 ######################################################################
+# RETRIEVE An ORDER ITEM
+######################################################################
+@app.route("/order_items/<int:id>", methods=["GET"])
+def get_order_items(id):
+    """
+    Retrieve a single Order item
+
+    This endpoint will return a Order item based on it's id
+    """
+    app.logger.info("Request for order item with id: %s", id)
+    order_item = Order_items.find(id)
+    if not order_item:
+        raise NotFound("Order item with id '{}' was not found.".format(id))
+
+    app.logger.info("Returning order item: %s", order_item.name)
+    return make_response(jsonify(order_item.serialize()), status.HTTP_200_OK)
+
+
+######################################################################
 #  U T I L I T Y   F U N C T I O N S
 ######################################################################
 
