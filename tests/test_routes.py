@@ -253,3 +253,39 @@ class TestOrderServer(unittest.TestCase):
     #     order_find_mock.return_value = [MagicMock(serialize=lambda: {'name': 'fido'})]
     #     resp = self.app.get(BASE_URL, query_string='name=fido')
     #     self.assertEqual(resp.status_code, status.HTTP_200_OK)
+
+######################################################################
+#  O R D E R   I T E M   T E S T   C A S E S
+######################################################################
+
+    def test_get_order_item(self):
+            """ Get an order_item from an order """
+            # create a known order_item
+            order = self._create_orders(1)[0]
+            order_item = OrderItemsFactory()
+            resp = self.app.post(
+                f"{BASE_URL}/{order.id}/order_items",
+                json=order_item.serialize(), 
+                content_type="application/json"
+            )
+            self.assertEqual(resp.status_code, status.HTTP_201_CREATED)
+
+            data = resp.get_json()
+            logging.debug(data)
+            id = data["id"]
+
+            # retrieve it back
+            resp = self.app.get(
+                f"{BASE_URL}/{order.id}/order_items/{id}",
+                content_type="application/json"
+            )
+            self.assertEqual(resp.status_code, status.HTTP_200_OK)
+
+            data = resp.get_json()
+            logging.debug(data)
+            self.assertEqual(data["order_id"], order.id)
+            self.assertEqual(data["product_id"], order_item.product_id)
+            self.assertEqual(data["quantity"], order_item.quantity)
+            self.assertEqual(data["price"], order_item.price)
+            self.assertEqual(data["total"], order_item.price_total)
+            self.assertEqual(data["employee"], order_item.emp)
