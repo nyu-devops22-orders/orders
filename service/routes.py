@@ -152,23 +152,25 @@ def delete_pets(pet_id):
     app.logger.info("Pet with ID [%s] delete complete.", pet_id)
     return make_response("", status.HTTP_204_NO_CONTENT)
 
+#---------------------------------------------------------------------
+#                O R D E R   I T E M   M E T H O D S
+#---------------------------------------------------------------------
 
 ######################################################################
-# RETRIEVE An ORDER ITEM
+# RETRIEVE An ORDER ITEM FROM ORDER
 ######################################################################
-@app.route("/order_items/<int:id>", methods=["GET"])
+@app.route("/orders/<int:order_id>/order_items/<int:id>", methods=["GET"])
 def get_order_items(id):
     """
-    Retrieve a single Order item
+    Get an Order Item
 
-    This endpoint will return a Order item based on it's id
+    This endpoint returns just an order item
     """
-    app.logger.info("Request for order item with id: %s", id)
+    app.logger.info("Request to retrieve Order Item %s for Order id: %s", (id, order_id))
     order_item = Order_items.find(id)
     if not order_item:
-        raise NotFound("Order item with id '{}' was not found.".format(id))
+        abort(status.HTTP_404_NOT_FOUND, f"Order with id '{id}' could not be found.")
 
-    app.logger.info("Returning order item: %s", order_item.name)
     return make_response(jsonify(order_item.serialize()), status.HTTP_200_OK)
 
 
