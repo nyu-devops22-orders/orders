@@ -157,6 +157,22 @@ def delete_pets(pet_id):
 #---------------------------------------------------------------------
 
 ######################################################################
+# LIST ORDER ITEMS
+######################################################################
+@app.route("/orders/<int:order_id>/order_items", methods=["GET"])
+def list_order_items(order_id):
+    """ Returns all of the Order Items for an Order """
+    app.logger.info("Request for all Order Items for ORder with id: %s", order_id)
+
+    order = Order.find(order_id)
+    if not order:
+        abort(status.HTTP_404_NOT_FOUND, f"Order with id '{order_id}' could not be found.")
+
+    results = [order_item.serialize() for order_item in order.order_items]
+    return make_response(jsonify(results), status.HTTP_200_OK)
+
+
+######################################################################
 # RETRIEVE An ORDER ITEM FROM ORDER
 ######################################################################
 @app.route("/orders/<int:order_id>/order_items/<int:id>", methods=["GET"])
