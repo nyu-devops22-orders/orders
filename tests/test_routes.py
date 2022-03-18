@@ -203,6 +203,7 @@ class TestOrderServer(unittest.TestCase):
         logging.debug(new_order)
         new_order["category"] = "unknown"
         resp = self.app.put(
+ 
             "/orders/{}".format(new_order["id"]),
             json=new_order,
             content_type=CONTENT_TYPE_JSON,
