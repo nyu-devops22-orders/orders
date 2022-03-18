@@ -17,7 +17,7 @@ Test Factory to make fake objects for testing
 """
 import factory
 from factory.fuzzy import FuzzyChoice
-from service.models import Orders, Order_itemsco
+from service.models import Order, Order_items
 
 ######################################################################
 #  O R D E R - -  F A C T O R Y
@@ -29,7 +29,7 @@ class OrderFactory(factory.Factory):
     class Meta:  # pylint: disable=too-few-public-methods
         """Maps factory to data model"""
 
-        model = Orders
+        model = Order
 
     id = factory.Sequence(lambda n: n)
     customer = factory.Faker("ean")         # Currently generating a BARCODE (EAN) because it's similar to an ID
@@ -53,4 +53,4 @@ class OrderItemsFactory(factory.Factory):
     product_id = factory.Faker("randomDigit")   # product_ID from products db - might need to change randomDigit (grabbed from google)
     quantity = factory.Faker("int")             # <--- Not sure if this is right, but need to make a random order quantity
     cost = factory.Faker("randomDigit")         # <---- random cost for each item
-    total = quantity * cost                     # total cost of the line item
+    total = factory.Faker("int")                    # total cost of the line item

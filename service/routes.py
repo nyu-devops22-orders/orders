@@ -26,7 +26,7 @@ DELETE /order/{id} - deletes an order record in the database
 
 from flask import jsonify, request, url_for, make_response, abort
 from werkzeug.exceptions import NotFound
-from service.models import Order
+from service.models import Order, Order_items
 from . import status  # HTTP Status Codes
 from . import app  # Import Flask application
 
@@ -151,6 +151,27 @@ def delete_pets(pet_id):
 
     app.logger.info("Pet with ID [%s] delete complete.", pet_id)
     return make_response("", status.HTTP_204_NO_CONTENT)
+
+#---------------------------------------------------------------------
+#                O R D E R   I T E M   M E T H O D S
+#---------------------------------------------------------------------
+
+######################################################################
+# RETRIEVE An ORDER ITEM FROM ORDER
+######################################################################
+@app.route("/orders/<int:order_id>/order_items/<int:id>", methods=["GET"])
+def get_order_items(id):
+    """
+    Get an Order Item
+
+    This endpoint returns just an order item
+    """
+    app.logger.info("Request to retrieve Order Item %s for Order id: %s", (id, order_id))
+    order_item = Order_items.find(id)
+    if not order_item:
+        abort(status.HTTP_404_NOT_FOUND, f"Order with id '{id}' could not be found.")
+
+    return make_response(jsonify(order_item.serialize()), status.HTTP_200_OK)
 
 
 ######################################################################
