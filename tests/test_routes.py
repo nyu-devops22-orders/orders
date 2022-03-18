@@ -198,7 +198,7 @@ class TestPetServer(unittest.TestCase):
         )
         self.assertEqual(resp.status_code, status.HTTP_201_CREATED)
 
-        # update the pet
+        # update the order
         new_order = resp.get_json()
         logging.debug(new_order)
         new_order["category"] = "unknown"

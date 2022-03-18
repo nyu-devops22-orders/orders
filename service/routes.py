@@ -26,7 +26,7 @@ DELETE /order/{id} - deletes an order record in the database
 
 from flask import jsonify, request, url_for, make_response, abort
 from werkzeug.exceptions import NotFound
-from service.models import Order, Pet
+from service.models import Order
 from . import status  # HTTP Status Codes
 from . import app  # Import Flask application
 
@@ -114,7 +114,7 @@ def create_pets():
 ######################################################################
 # UPDATE AN EXISTING ORDER
 ######################################################################
-@app.route("/order/<int:pet_id>", methods=["PUT"])
+@app.route("/order/<int:order_id>", methods=["PUT"])
 def update_order(order_id):
     """
     Update an Order
