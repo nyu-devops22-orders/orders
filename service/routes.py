@@ -160,7 +160,7 @@ def delete_pets(pet_id):
 # RETRIEVE An ORDER ITEM FROM ORDER
 ######################################################################
 @app.route("/orders/<int:order_id>/order_items/<int:id>", methods=["GET"])
-def get_order_items(id):
+def get_order_items(order_id, id):
     """
     Get an Order Item
 
