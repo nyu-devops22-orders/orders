@@ -32,7 +32,7 @@ import unittest
 from urllib.parse import quote_plus
 from service import app, status
 from service.models import db, init_db
-from .factories import OrderFactory
+from .factories import OrderFactory, OrderItemsFactory
 
 # Disable all but critical errors during normal test run
 # uncomment for debugging failing tests
