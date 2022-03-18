@@ -189,27 +189,27 @@ class TestPetServer(unittest.TestCase):
     #     )
     #     self.assertEqual(resp.status_code, status.HTTP_400_BAD_REQUEST)
 
-    def test_update_pet(self):
-        """Update an existing Pet"""
-        # create a pet to update
-        test_pet = PetFactory()
+    def test_update_order(self):
+        """Update an existing Order"""
+        # create an order to update
+        test_order = OrderFactory()
         resp = self.app.post(
-            BASE_URL, json=test_pet.serialize(), content_type=CONTENT_TYPE_JSON
+            BASE_URL, json=test_order.serialize(), content_type=CONTENT_TYPE_JSON
         )
         self.assertEqual(resp.status_code, status.HTTP_201_CREATED)
 
         # update the pet
-        new_pet = resp.get_json()
-        logging.debug(new_pet)
-        new_pet["category"] = "unknown"
+        new_order = resp.get_json()
+        logging.debug(new_order)
+        new_order["category"] = "unknown"
         resp = self.app.put(
-            "/pets/{}".format(new_pet["id"]),
-            json=new_pet,
+            "/pets/{}".format(new_order["id"]),
+            json=new_order,
             content_type=CONTENT_TYPE_JSON,
         )
         self.assertEqual(resp.status_code, status.HTTP_200_OK)
-        updated_pet = resp.get_json()
-        self.assertEqual(updated_pet["category"], "unknown")
+        updated_order = resp.get_json()
+        self.assertEqual(updated_order["category"], "unknown")
 
     def test_delete_pet(self):
         """Delete a Pet"""

@@ -17,16 +17,16 @@ Pet Store Service
 
 Paths:
 ------
-GET /pets - Returns a list all of the Pets
-GET /pets/{id} - Returns the Pet with a given id number
-POST /pets - creates a new Pet record in the database
-PUT /pets/{id} - updates a Pet record in the database
-DELETE /pets/{id} - deletes a Pet record in the database
+GET /orders - Returns a list all of the orders
+GET /order/{id} - Returns the order with a given id number
+POST /order - creates a new order record in the database
+PUT /order/{id} - updates an order record in the database
+DELETE /order/{id} - deletes an order record in the database
 """
 
 from flask import jsonify, request, url_for, make_response, abort
 from werkzeug.exceptions import NotFound
-from service.models import Pet
+from service.models import Order, Pet
 from . import status  # HTTP Status Codes
 from . import app  # Import Flask application
 
@@ -112,26 +112,26 @@ def create_pets():
 
 
 ######################################################################
-# UPDATE AN EXISTING PET
+# UPDATE AN EXISTING ORDER
 ######################################################################
-@app.route("/pets/<int:pet_id>", methods=["PUT"])
-def update_pets(pet_id):
+@app.route("/order/<int:pet_id>", methods=["PUT"])
+def update_order(order_id):
     """
-    Update a Pet
+    Update an Order
 
-    This endpoint will update a Pet based the body that is posted
+    This endpoint will update an Order based the body that is posted
     """
-    app.logger.info("Request to update pet with id: %s", pet_id)
+    app.logger.info("Request to update order with id: %s", order_id)
     check_content_type("application/json")
-    pet = Pet.find(pet_id)
-    if not pet:
-        raise NotFound("Pet with id '{}' was not found.".format(pet_id))
-    pet.deserialize(request.get_json())
-    pet.id = pet_id
-    pet.update()
+    order = Order.find(order_id)
+    if not order:
+        raise NotFound("Order with id '{}' was not found.".format(order_id))
+    order.deserialize(request.get_json())
+    order.id = order_id
+    order.update()
 
-    app.logger.info("Pet with ID [%s] updated.", pet.id)
-    return make_response(jsonify(pet.serialize()), status.HTTP_200_OK)
+    app.logger.info("Order with ID [%s] updated.", Order.id)
+    return make_response(jsonify(order.serialize()), status.HTTP_200_OK)
 
 
 ######################################################################
