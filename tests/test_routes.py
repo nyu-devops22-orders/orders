@@ -31,8 +31,8 @@ import unittest
 # from unittest.mock import MagicMock, patch
 from urllib.parse import quote_plus
 from service import app, status
-from service.models import Order, Order_items, db, init_db
-from .factories import OrderFactory
+from service.models import db, init_db
+from .factories import OrderFactory, OrderItemsFactory
 
 # Disable all but critical errors during normal test run
 # uncomment for debugging failing tests
@@ -258,6 +258,39 @@ class TestOrderServer(unittest.TestCase):
 ######################################################################
 #  O R D E R   I T E M   T E S T   C A S E S
 ######################################################################
+
+    def test_get_order_item_list(self):
+            """ Get a list of Order Items """
+            # add two order items to order
+            order = self._create_orders(1)[0]
+            order_item_list = OrderItemsFactory.create_batch(2)
+
+            # Create order item 1
+            resp = self.app.post(
+                f"{BASE_URL}/{order.id}/order_items", 
+                json=order_item_list[0].serialize(), 
+                content_type="application/json"
+            )
+            self.assertEqual(resp.status_code, status.HTTP_201_CREATED)
+
+            # Create order item 2
+            resp = self.app.post(
+                f"{BASE_URL}/{order.id}/order_items",
+                json=order_item_list[1].serialize(), 
+                content_type="application/json"
+            )
+            self.assertEqual(resp.status_code, status.HTTP_201_CREATED)
+
+            # get the list back and make sure there are 2
+            resp = self.app.get(
+                f"{BASE_URL}/{order.id}/order_items", 
+                content_type="application/json"
+            )
+            self.assertEqual(resp.status_code, status.HTTP_200_OK)
+
+            data = resp.get_json()
+            self.assertEqual(len(data), 2)
+
 
     def test_get_order_item(self):
             """ Get an order_item from an order """
