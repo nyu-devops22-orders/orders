@@ -323,3 +323,22 @@ class TestOrderServer(unittest.TestCase):
             self.assertEqual(data["price"], order_item.price)
             self.assertEqual(data["total"], order_item.price_total)
             self.assertEqual(data["employee"], order_item.emp)
+
+    def test_add_order_item(self):
+        """ Add an Item to an Order """
+        Order = self._create_orders(1)[0]
+        Order_item = OrderItemsFactory()
+        resp = self.app.post(
+            f"{BASE_URL}/{Order.id}/order_items",
+            json=Order.serialize(), 
+            content_type="application/json"
+        )
+        self.assertEqual(resp.status_code, status.HTTP_201_CREATED)
+        data = resp.get_json()
+        logging.debug(data)
+        self.assertEqual(data["order_id"], Order.id)
+        self.assertEqual(data["product_id"], Order_item.product_id)
+        self.assertEqual(data["quantity"], Order_item.quantity)
+        self.assertEqual(data["price"], Order_item.price)
+        self.assertEqual(data["total"], Order_item.price_total)
+        self.assertEqual(data["employee"], Order_item.emp)
