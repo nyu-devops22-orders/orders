@@ -73,24 +73,26 @@ class TestOrderModel(unittest.TestCase):
 
     def test_create_a_order(self):
         """Create a order and assert that it exists"""
-        order = Order(name="Fido", category="dog", available=True, gender=Gender.MALE)
+        order = Order(customer ="1", status="Open", date="01/01/2022")
         self.assertTrue(order is not None)
+        self.assertEqual(order.date, "01/01/2022")
         self.assertEqual(order.id, None)
-        self.assertEqual(order.name, "Fido")
-        self.assertEqual(order.category, "dog")
-        self.assertEqual(order.available, True)
-        self.assertEqual(order.gender, Gender.MALE)
-        order = Order(name="Fido", category="dog", available=False, gender=Gender.FEMALE)
-        self.assertEqual(order.available, False)
-        self.assertEqual(order.gender, Gender.FEMALE)
+        self.assertEqual(order.customer, "1")
+        self.assertEqual(order.status, "Open")
+
+        order = Order(customer ="2", status="Closed", date="02/02/2022")
+        self.assertEqual(order.status, "Closed")
+        self.assertEqual(order.date, "02/02/2022")
+        self.assertEqual(order.customer, "2")
 
     def test_add_a_order(self):
         """Create a order and add it to the database"""
         orders = Order.all()
         self.assertEqual(orders, [])
-        order = Order(name="Fido", category="dog", available=True, gender=Gender.MALE)
+        order = Order(customer ="1", status="Open", date="01/01/2022")
         self.assertTrue(order is not None)
         self.assertEqual(order.id, None)
+        self.assertEqual(order.date, "01/01/2022")
         order.create()
         # Assert that it was assigned an id and shows up in the database
         self.assertEqual(order.id, 1)
