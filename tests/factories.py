@@ -32,10 +32,11 @@ class OrderFactory(factory.Factory):
         model = Order
 
     id = factory.Sequence(lambda n: n)
-    customer = factory.Faker("ean")         # Currently generating a BARCODE (EAN) because it's similar to an ID
-    order_date = factory.Faker("date")
-    total = factory.Faker("randomDigit")
-    name = factory.Faker("name")              
+    customer = factory.Faker("random_number")        
+    date = factory.Faker("date_object")
+    total = factory.Faker("random_number")
+    status = FuzzyChoice(choices=["Open", "Closed", "Refunded"])      
+ 
 
 ######################################################################
 #  O R D E R _ I T E M S  - - S U B F A C T O R Y
@@ -49,8 +50,8 @@ class OrderItemsFactory(factory.Factory):
         model = Order_items
 
     id = factory.Sequence(lambda n: n)
-    order_id = factory.Faker("ean")             # need this to link to main order on instantiation
-    product_id = factory.Faker("randomDigit")   # product_ID from products db - might need to change randomDigit (grabbed from google)
-    quantity = factory.Faker("int")             # <--- Not sure if this is right, but need to make a random order quantity
-    cost = factory.Faker("randomDigit")         # <---- random cost for each item
-    total = factory.Faker("int")                    # total cost of the line item
+    order_id = 0         # need this to link to main order on instantiation
+    product_id = factory.Faker('pyint', min_value=0, max_value=1000)                    
+    quantity = factory.Faker('pyint', min_value=0, max_value=1000)                       
+    price = factory.Faker('pyint', min_value=0, max_value=1000)                         
+    price_total = factory.Faker('pyint', min_value=0, max_value=1000)                    
