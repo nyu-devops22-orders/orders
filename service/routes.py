@@ -13,7 +13,7 @@
 # limitations under the License.
 
 """
-Pet Store Service
+Order Store Service
 
 Paths:
 ------
@@ -39,13 +39,12 @@ def index():
     app.logger.info("Request for Root URL")
     return (
         jsonify(
-            name="Pet Demo REST API Service",
+            name="Order Demo REST API Service",
             version="1.0",
-            paths=url_for("list_pets", _external=True),
+            paths=url_for("list_orders", _external=True),
         ),
         status.HTTP_200_OK,
     )
-
 
 ######################################################################
 # LIST ALL ORDERS
@@ -58,44 +57,43 @@ def list_orders():
     results = [order.serialize() for order in orders]
     return make_response(jsonify(results), status.HTTP_200_OK)
 
+######################################################################
+# RETRIEVE A ORDER
+######################################################################
+@app.route("/orders/<int:order_id>", methods=["GET"])
+def get_orders(order_id):
+    """
+    Retrieve a single Order
+
+    This endpoint will return a Order based on it's id
+    """
+    app.logger.info("Request for order with id: %s", order_id)
+    order = Order.find(order_id)
+    if not order:
+        raise NotFound("Order with id '{}' was not found.".format(order_id))
+
+    app.logger.info("Returning order: %s", order.id)
+    return make_response(jsonify(order.serialize()), status.HTTP_200_OK)
+
 
 ######################################################################
-# RETRIEVE A PET
+# ADD A NEW ORDER
 ######################################################################
-@app.route("/pets/<int:pet_id>", methods=["GET"])
-def get_pets(pet_id):
+@app.route("/orders", methods=["POST"])
+def create_orders():
     """
-    Retrieve a single Pet
-
-    This endpoint will return a Pet based on it's id
+    Creates a Order
+    This endpoint will create a Order based the data in the body that is posted
     """
-    app.logger.info("Request for pet with id: %s", pet_id)
-    pet = Pet.find(pet_id)
-    if not pet:
-        raise NotFound("Pet with id '{}' was not found.".format(pet_id))
-
-    app.logger.info("Returning pet: %s", pet.name)
-    return make_response(jsonify(pet.serialize()), status.HTTP_200_OK)
-
-
-######################################################################
-# ADD A NEW PET
-######################################################################
-@app.route("/pets", methods=["POST"])
-def create_pets():
-    """
-    Creates a Pet
-    This endpoint will create a Pet based the data in the body that is posted
-    """
-    app.logger.info("Request to create a pet")
+    app.logger.info("Request to create a order")
     check_content_type("application/json")
-    pet = Pet()
-    pet.deserialize(request.get_json())
-    pet.create()
-    message = pet.serialize()
-    location_url = url_for("get_pets", pet_id=pet.id, _external=True)
+    order = Order()
+    order.deserialize(request.get_json())
+    order.create()
+    message = order.serialize()
+    location_url = url_for("get_orders", order_id=order.id, _external=True)
 
-    app.logger.info("Pet with ID [%s] created.", pet.id)
+    app.logger.info("Order with ID [%s] created.", order.id)
     return make_response(
         jsonify(message), status.HTTP_201_CREATED, {"Location": location_url}
     )
@@ -129,11 +127,12 @@ def update_order(order_id):
 @app.route("/orders/<int:order_id>", methods=["DELETE"])
 def delete_orders(order_id):
     """
-    Delete an order
+    Delete a Order
 
-    This endpoint will delete an order based the id specified in the path
+    This endpoint will delete a Order based the id specified in the path
     """
-    app.logger.info("Request to delete an order with id: %s", order_id)
+    app.logger.info("Request to delete order with id: %s", order_id)
+
     order = Order.find(order_id)
     if order:
         order.delete()
@@ -150,10 +149,10 @@ def delete_orders(order_id):
 ######################################################################
 @app.route("/orders/<int:order_id>/order_items", methods=["GET"])
 def list_order_items(order_id):
-    """ Returns all of the Order Items for an Order """
-    app.logger.info("Request for all Order Items for ORder with id: %s", order_id)
+    """ Returns all of the Addresses for an Order """
+    app.logger.info("Request for all Addresses for Order with id: %s", order_id)
 
-    order = Order.find(order_id)
+    order = Order_items.find(order_id)
     if not order:
         abort(status.HTTP_404_NOT_FOUND, f"Order with id '{order_id}' could not be found.")
 

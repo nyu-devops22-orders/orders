@@ -82,7 +82,9 @@ class Order(db.Model):
     total = db.Column(db.Float, nullable = True)
     status = db.Column(db.String(63), nullable=False)
     emp = db.Column(db.Integer, nullable=True)
-    
+
+    order_items = db.relationship('Order_items', backref='order', lazy=True)  
+
     
     ##################################################
     # INSTANCE METHODS
@@ -214,14 +216,16 @@ class Order_items(db.Model):
     # Table Schema
     ##################################################
     id = db.Column(db.Integer, primary_key=True)
-    order_id = db.Column(db.Integer, db.ForeignKey('order.id'), nullable = False)          # Relate to orders DB somehow...
+
+    order_id = db.Column(db.Integer, db.ForeignKey('order.id'), nullable=False)          # Relate to orders DB somehow...
     product_id = db.Column(db.Integer, nullable = False)
     quantity = db.Column(db.Float, nullable = True)
     price = db.Column(db.Float, nullable = False)
     price_total = db.Column(db.Float, nullable = True) 
     emp = db.Column(db.Integer, nullable=True)                 # adding this in event DIFFERENT employee edits and adds/removes items from order ; audit purposes
+
     
-  ##################################################
+    ##################################################
     # INSTANCE METHODS
     ##################################################
 
