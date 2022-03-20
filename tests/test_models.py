@@ -107,17 +107,17 @@ class TestOrderModel(unittest.TestCase):
         logging.debug(order)
         self.assertEqual(order.id, 1)
         # Change it an save it
-        order.category = "k9"
+        order.status = "Open"
         original_id = order.id
         order.update()
         self.assertEqual(order.id, original_id)
-        self.assertEqual(order.category, "k9")
+        self.assertEqual(order.status, "Open")
         # Fetch it back and make sure the id hasn't changed
         # but the data did change
         orders = Order.all()
         self.assertEqual(len(orders), 1)
         self.assertEqual(orders[0].id, 1)
-        self.assertEqual(orders[0].category, "k9")
+        self.assertEqual(orders[0].status, "Open")
 
     def test_delete_a_order(self):
         """Delete a Order"""

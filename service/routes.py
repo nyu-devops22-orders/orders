@@ -123,7 +123,6 @@ def update_order(order_id):
     app.logger.info("Order with ID [%s] updated.", Order.id)
     return make_response(jsonify(order.serialize()), status.HTTP_200_OK)
 
-
 ######################################################################
 # DELETE AN ORDER
 ######################################################################
