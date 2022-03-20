@@ -295,7 +295,7 @@ class TestOrderServer(unittest.TestCase):
     def test_get_order_item(self):
             """ Get an order_item from an order """
             # create a known order_item
-            order = self._create_orders(1)[0]
+            order = self._create_order(1)[0]
             order_item = OrderItemsFactory()
             resp = self.app.post(
                 f"{BASE_URL}/{order.id}/order_items",
