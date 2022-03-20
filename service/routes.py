@@ -48,24 +48,14 @@ def index():
 
 
 ######################################################################
-# LIST ALL PETS
+# LIST ALL ORDERS
 ######################################################################
-@app.route("/pets", methods=["GET"])
-def list_pets():
-    """Returns all of the Pets"""
-    app.logger.info("Request for pet list")
-    pets = []
-    category = request.args.get("category")
-    name = request.args.get("name")
-    if category:
-        pets = Pet.find_by_category(category)
-    elif name:
-        pets = Pet.find_by_name(name)
-    else:
-        pets = Pet.all()
-
-    results = [pet.serialize() for pet in pets]
-    app.logger.info("Returning %d pets", len(results))
+@app.route("/orders", methods=["GET"])
+def list_orders():
+    """Returns all of the Orders"""
+    app.logger.info("Request for Order List")
+    orders = Order.all()
+    results = [order.serialize() for order in orders]
     return make_response(jsonify(results), status.HTTP_200_OK)
 
 
@@ -135,21 +125,21 @@ def update_order(order_id):
 
 
 ######################################################################
-# DELETE A PET
+# DELETE AN ORDER
 ######################################################################
-@app.route("/pets/<int:pet_id>", methods=["DELETE"])
-def delete_pets(pet_id):
+@app.route("/orders/<int:order_id>", methods=["DELETE"])
+def delete_orders(order_id):
     """
-    Delete a Pet
+    Delete an order
 
-    This endpoint will delete a Pet based the id specified in the path
+    This endpoint will delete an order based the id specified in the path
     """
-    app.logger.info("Request to delete pet with id: %s", pet_id)
-    pet = Pet.find(pet_id)
-    if pet:
-        pet.delete()
+    app.logger.info("Request to delete an order with id: %s", order_id)
+    order = Order.find(order_id)
+    if order:
+        order.delete()
 
-    app.logger.info("Pet with ID [%s] delete complete.", pet_id)
+    app.logger.info("Order with ID [%s] delete complete.", order_id)
     return make_response("", status.HTTP_204_NO_CONTENT)
 
 #---------------------------------------------------------------------
