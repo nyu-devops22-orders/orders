@@ -145,7 +145,7 @@ def delete_orders(order_id):
     This endpoint will delete an order based the id specified in the path
     """
     app.logger.info("Request to delete an order with id: %s", order_id)
-    order = Order.find(pet_id)
+    order = Order.find(order_id)
     if order:
         order.delete()
 
