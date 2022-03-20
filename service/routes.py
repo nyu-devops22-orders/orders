@@ -202,7 +202,6 @@ def create_items(order_id):
     return make_response(jsonify(message), status.HTTP_201_CREATED)
 
 
-
 ######################################################################
 #  U T I L I T Y   F U N C T I O N S
 ######################################################################

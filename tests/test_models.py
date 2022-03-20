@@ -268,3 +268,27 @@ class TestOrderModel(unittest.TestCase):
     def test_find_or_404_not_found(self):
         """Find or return 404 NOT found"""
         self.assertRaises(NotFound, Order.find_or_404, 0)
+        
+    def test_add_order_order_item(self):
+        """ Create an order with an order_item and add it to the database """
+        orders = Order.all()
+        self.assertEqual(orders, [])
+        order = self._create_order()
+        order_item = self._create_order_item()
+        order.order_items.append(order_item)
+        order.create()
+        # Assert that it was assigned an id and shows up in the database
+        self.assertEqual(order.id, 1)
+        orders = Order.all()
+        self.assertEqual(len(orders), 1)
+
+        new_order = Order.find(order.id)
+        self.assertEqual(order.order_items[0].product_id, order_item.product_id)
+
+        order_item2 = self._create_order_item()
+        order.order_items.append(order_item2)
+        order.update()
+
+        new_order = Order.find(order.id)
+        self.assertEqual(len(order.order_items), 2)
+        self.assertEqual(order.order_items[1].product_id, order_item2.product_id)
