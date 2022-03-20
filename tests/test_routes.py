@@ -79,7 +79,6 @@ class TestOrderServer(unittest.TestCase):
         db.session.remove()
         db.drop_all()
 
-
     def _create_order(self, count):
         """ Factory method to create orders in bulk """
         orders = []
@@ -276,6 +275,4 @@ class TestOrderServer(unittest.TestCase):
         self.assertEqual(data["product_id"], order_item.product_id)
         self.assertEqual(data["quantity"], order_item.quantity)
         self.assertEqual(data["price"], order_item.price)
-
-
 

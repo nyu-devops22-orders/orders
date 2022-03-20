@@ -51,8 +51,8 @@ def index():
 ######################################################################
 @app.route("/orders", methods=["GET"])
 def list_orders():
-    """ Returns all of the Orders """
-    app.logger.info("Request for Order list")
+    """Returns all of the Orders"""
+    app.logger.info("Request for Order List")
     orders = Order.all()
     results = [order.serialize() for order in orders]
     return make_response(jsonify(results), status.HTTP_200_OK)
@@ -121,9 +121,8 @@ def update_order(order_id):
     app.logger.info("Order with ID [%s] updated.", Order.id)
     return make_response(jsonify(order.serialize()), status.HTTP_200_OK)
 
-
 ######################################################################
-# DELETE A ORDER
+# DELETE AN ORDER
 ######################################################################
 @app.route("/orders/<int:order_id>", methods=["DELETE"])
 def delete_orders(order_id):
@@ -133,6 +132,7 @@ def delete_orders(order_id):
     This endpoint will delete a Order based the id specified in the path
     """
     app.logger.info("Request to delete order with id: %s", order_id)
+
     order = Order.find(order_id)
     if order:
         order.delete()
@@ -199,7 +199,6 @@ def create_items(order_id):
     order.update()
     message = item.serialize()
     return make_response(jsonify(message), status.HTTP_201_CREATED)
-
 
 
 ######################################################################

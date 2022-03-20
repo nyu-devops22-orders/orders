@@ -227,7 +227,6 @@ class TestOrderModel(unittest.TestCase):
         """Find or return 404 NOT found"""
         self.assertRaises(NotFound, Order.find_or_404, 0)
 
-
    ######################################################################
     #  T E S T   C A S E S - ORDER ITEMS
     ######################################################################
@@ -241,6 +240,7 @@ class TestOrderModel(unittest.TestCase):
         """ Deserialize an order_item with a TypeError """
         order_item = Order_items()
         self.assertRaises(DataValidationError, order_item.deserialize, [])
+
 
     def test_add_order_order_item(self):
         """ Create an order with an order_item and add it to the database """
@@ -314,3 +314,4 @@ class TestOrderModel(unittest.TestCase):
         # Fetch it back again
         order = Order.find(order.id)
         self.assertEqual(len(order.order_items), 0)
+
