@@ -77,20 +77,20 @@ class TestOrderServer(unittest.TestCase):
         db.session.remove()
         db.drop_all()
 
-    def _create_orders(self, count):
-        """Factory method to create orders in bulk"""
+    def _create_order(self, count):
+        """ Factory method to create orders in bulk """
         orders = []
         for _ in range(count):
-            test_order = OrderFactory()
+            order = OrderFactory()
             resp = self.app.post(
-                BASE_URL, json=test_order.serialize(), content_type=CONTENT_TYPE_JSON
+                BASE_URL, json=order.serialize(), content_type="application/json"
             )
             self.assertEqual(
-                resp.status_code, status.HTTP_201_CREATED, "Could not create test order"
+                resp.status_code, status.HTTP_201_CREATED, "Could not create test Order"
             )
-            new_order = resp.get_json()
-            test_order.id = new_order["id"]
-            orders.append(test_order)
+            new_account = resp.get_json()
+            order.id = new_account["id"]
+            orders.append(order)
         return orders
 
     def test_index(self):
