@@ -27,7 +27,7 @@ Date            P/O date
 Customer        Related customer account
 Order_Items     One-to-Many (Relational -- autofill)
 Total           Order Total (sum[order_items[cost_total]])
-Status          Order Status (Open, Error, Closed, Returned/Refund)
+Status          Order Status (Open, Closed, Returned/Refund)
 Name            Employee in charge of order / input
 
 
@@ -79,9 +79,9 @@ class Order(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     date = db.Column(db.DateTime, nullable = False)
     customer = db.Column(db.Integer, nullable=False)
-    total = db.Column(db.Float, nullable = False)
+    total = db.Column(db.Float, nullable = True)
     status = db.Column(db.String(63), nullable=False)
-    emp = db.Column(db.Integer, nullable=False)
+    emp = db.Column(db.Integer, nullable=True)
     
     
     ##################################################
@@ -89,13 +89,13 @@ class Order(db.Model):
     ##################################################
 
     def __repr__(self):
-        return "<Order %r id=[%s]>" % (self.customer, self.id, self.date)
+        return "<Order %r id=[%s]>" % (self.id, self.customer, self.date)
 
     def create(self):
         """
         Creates an ORDER to the database
         """
-        logger.info("Creating %s", self.emp)
+        logger.info("Creating %s", self.customer)
         # id must be none to generate next primary key
         self.id = None  # pylint: disable=invalid-name
         db.session.add(self)
@@ -105,14 +105,14 @@ class Order(db.Model):
         """
         Updates an ORDER to the database
         """
-        logger.info("Saving %s", self.emp)
+        logger.info("Saving %s", self.customer, self.date)
         if not self.id:
             raise DataValidationError("Update called with empty ID field")
         db.session.commit()
 
     def delete(self):
         """Removes an ORDER from the data store"""
-        logger.info("Deleting %s", self.emp)
+        logger.info("Deleting %s", self.customer, self.date)
         db.session.delete(self)
         db.session.commit()
 
@@ -122,9 +122,9 @@ class Order(db.Model):
             "id": self.id,
             "customer": self.customer,
             "date": self.date,
-            "total": self.total,
-            "status": self.status,
-            "employee id": self.emp,  
+
+           "status": self.status,
+ 
         }
 
     def deserialize(self, data: dict):
@@ -136,8 +136,6 @@ class Order(db.Model):
         try:
             self.customer = data["customer"]
             self.date = data["date"]
-            self.total = data["total"]
-            self.emp = data["emp"]
             self.status = data["status"]
         except AttributeError as error:
             raise DataValidationError("Invalid attribute: " + error.args[0])
@@ -187,9 +185,10 @@ class Order(db.Model):
         logger.info("Processing lookup for id %s ...", id)
         return cls.query.get(id)
 
+
     @classmethod
     def find_or_404(cls, order_id: int):
-        """Find an ORDER by it's id
+        """Find an ORDER by it's id or 404
 
         :param id: the id of the ORDER to find
         :type id: int
@@ -198,36 +197,10 @@ class Order(db.Model):
         :rtype: ORDER
 
         """
-        logger.info("Processing lookup or 404 for id %s ...", id)
-        return cls.query.get_or_404(id)
+        logger.info("Processing lookup or 404 for id %s ...", order_id)
+        return cls.query.get_or_404(order_id)
 
-    @classmethod
-    def find_by_employee(cls, name: str) -> list:
-        """Returns all Order submitted by given employee
 
-        :param name: the name of the employee you want to match
-        :type name: str
-
-        :return: a collection of Orders submitted by given employee
-        :rtype: list
-
-        """
-        logger.info("Processing name query for %s ...", name)
-        return cls.query.filter(cls.name == name)
-
-    @classmethod
-    def find_by_status(cls, status: str) -> list:
-        """Returns all of the Orders with same status
-
-        :param status: the status of the Orders you want to match
-        :type status: str
-
-        :return: a collection of Orders in that status category
-        :rtype: list
-
-        """
-        logger.info("Processing status query for %s ...", status)
-        return cls.query.filter(cls.status == status)
 
 class Order_items(db.Model):
     """
@@ -241,12 +214,12 @@ class Order_items(db.Model):
     # Table Schema
     ##################################################
     id = db.Column(db.Integer, primary_key=True)
-    order_id = db.Column(db.Integer, nullable = False)          # Relate to orders DB somehow...
+    order_id = db.Column(db.Integer, db.ForeignKey('order.id'), nullable = False)          # Relate to orders DB somehow...
     product_id = db.Column(db.Integer, nullable = False)
-    quantity = db.Column(db.Float, nullable = False)
+    quantity = db.Column(db.Float, nullable = True)
     price = db.Column(db.Float, nullable = False)
-    price_total = db.Column(db.Float, nullable = False) 
-    emp = db.Column(db.Integer, nullable=False)                 # adding this in event DIFFERENT employee edits and adds/removes items from order ; audit purposes
+    price_total = db.Column(db.Float, nullable = True) 
+    emp = db.Column(db.Integer, nullable=True)                 # adding this in event DIFFERENT employee edits and adds/removes items from order ; audit purposes
     
   ##################################################
     # INSTANCE METHODS
@@ -259,7 +232,7 @@ class Order_items(db.Model):
         """
         Creates an ORDER_ITEM to the database
         """
-        logger.info("Creating %s", self.id)
+        logger.info("Creating %s", self.order_id)
         # id must be none to generate next primary key
         self.id = None  # pylint: disable=invalid-name
         db.session.add(self)
@@ -267,7 +240,7 @@ class Order_items(db.Model):
 
     def update(self):
         """
-        Updates an ORDER to the database
+        Updates an ORDER ITEM to the database
         """
         logger.info("Saving %s", self.id)
         if not self.id:
@@ -275,7 +248,7 @@ class Order_items(db.Model):
         db.session.commit()
 
     def delete(self):
-        """Removes an ORDER from the data store"""
+        """Removes an ORDER ITEM from the data store"""
         logger.info("Deleting %s", self.id)
         db.session.delete(self)
         db.session.commit()
@@ -289,8 +262,6 @@ class Order_items(db.Model):
             "quantity": self.quantity,
             "item cost": self.price,
             "total": self.price_total,
-            "employee": self.emp,
-
         }
 
     def deserialize(self, data: dict):
@@ -341,47 +312,7 @@ class Order_items(db.Model):
         logger.info("Processing all ORDER ITEMS")
         return cls.query.all()
 
-    @classmethod
-    def find(cls, id: int):
-        """Finds an ORDER ITEMS by it's ID
 
-        :param id: the id of the ORDER to find
-        :type id: int
-
-        :return: an instance with the id, or None if not found
-        :rtype: ORDER
-
-        """
-        logger.info("Processing lookup for id %s ...", id)
-        return cls.query.get(id)
-
-    @classmethod
-    def find_order(cls, order_id: int):
-        """Finds an ORDER ITEMS by it's parent ORDER ID
-
-        :param id: the id of the ORDER to find
-        :type id: int
-
-        :return: an instance with the id, or None if not found
-        :rtype: ORDER
-
-        """
-        logger.info("Processing lookup for id %s ...", order_id)
-        return cls.query.get(order_id)
-
-    @classmethod
-    def find_or_404(cls, id: int):
-        """Find an ORDER by it's id
-
-        :param id: the id of the ORDER to find
-        :type id: int
-
-        :return: an instance with the id, or 404_NOT_FOUND if not found
-        :rtype: ORDER
-
-        """
-        logger.info("Processing lookup or 404 for id %s ...", id)
-        return cls.query.get_or_404(id)
 
 
         
