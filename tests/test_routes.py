@@ -201,16 +201,16 @@ class TestOrderServer(unittest.TestCase):
         # update the order
         new_order = resp.get_json()
         logging.debug(new_order)
-        new_order["category"] = "unknown"
+        new_order["status"] = "Closed"
         resp = self.app.put(
  
-            "/orders/{}".format(new_order["id"]),
+            "/order/{}".format(new_order["id"]),
             json=new_order,
             content_type=CONTENT_TYPE_JSON,
         )
         self.assertEqual(resp.status_code, status.HTTP_200_OK)
         updated_order = resp.get_json()
-        self.assertEqual(updated_order["category"], "unknown")
+        self.assertEqual(updated_order["status"], "Closed")
 
     def test_delete_order(self):
         """Delete a Order"""
