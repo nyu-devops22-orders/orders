@@ -149,14 +149,14 @@ def delete_orders(order_id):
 ######################################################################
 @app.route("/orders/<int:order_id>/items", methods=["GET"])
 def list_items(order_id):
-    """ Returns all of the Addresses for an Order """
-    app.logger.info("Request for all Addresses for Order with id: %s", order_id)
+    """ Returns all of the Items for an Order """
+    app.logger.info("Request for all Items for Order with id: %s", order_id)
 
-    order = items.find(order_id)
+    order = Order.find(order_id)
     if not order:
         abort(status.HTTP_404_NOT_FOUND, f"Order with id '{order_id}' could not be found.")
 
-    results = [order_item.serialize() for order_item in order.items]
+    results = [item.serialize() for item in order.items]
     return make_response(jsonify(results), status.HTTP_200_OK)
 
 
@@ -171,11 +171,11 @@ def get_items(order_id, id):
     This endpoint returns just an order item
     """
     app.logger.info("Request to retrieve Order Item %s for Order id: %s", (id, order_id))
-    order_item = items.find(id)
-    if not order_item:
+    item = items.find(id)
+    if not item:
         abort(status.HTTP_404_NOT_FOUND, f"Order with id '{id}' could not be found.")
 
-    return make_response(jsonify(order_item.serialize()), status.HTTP_200_OK)
+    return make_response(jsonify(item.serialize()), status.HTTP_200_OK)
 
 ######################################################################
 # ADD AN ITEM TO AN ORDER
@@ -200,12 +200,49 @@ def create_items(order_id):
     message = item.serialize()
     return make_response(jsonify(message), status.HTTP_201_CREATED)
 
+######################################################################
+# UPDATE AN ITEM
+######################################################################
+@app.route("/orders/<int:order_id>/items/<int:item_id>", methods=["PUT"])
+def update_items(order_id, item_id):
+    """
+    Update an Item
+
+    This endpoint will update an Item based the body that is posted
+    """
+    app.logger.info("Request to update Item %s for Order id: %s", (item_id, order_id))
+    check_content_type("application/json")
+
+    item = items.find(item_id)
+    if not item:
+        abort(status.HTTP_404_NOT_FOUND, f"Order with id '{item_id}' could not be found.")
+
+    item.deserialize(request.get_json())
+    item.id = item_id
+    item.update()
+    return make_response(jsonify(item.serialize()), status.HTTP_200_OK)
+
+######################################################################
+# DELETE AN ITEM
+######################################################################
+@app.route("/orders/<int:order_id>/items/<int:item_id>", methods=["DELETE"])
+def delete_items(order_id, item_id):
+    """
+    Delete an Item
+
+    This endpoint will delete an Item based the id specified in the path
+    """
+    app.logger.info("Request to delete Item %s for Order id: %s", (item_id, order_id))
+
+    item = items.find(item_id)
+    if item:
+        item.delete()
+
+    return make_response("", status.HTTP_204_NO_CONTENT)
 
 ######################################################################
 #  U T I L I T Y   F U N C T I O N S
 ######################################################################
-
-
 def check_content_type(media_type):
     """Checks that the media type is correct"""
     content_type = request.headers.get("Content-Type")
@@ -216,3 +253,14 @@ def check_content_type(media_type):
         status.HTTP_415_UNSUPPORTED_MEDIA_TYPE,
         "Content-Type must be {}".format(media_type),
     )
+def init_db():
+    """ Initializes the SQLAlchemy app """
+    global app
+    Order.init_db(app)
+
+def check_content_type(content_type):
+    """ Checks that the media type is correct """
+    if request.headers["Content-Type"] == content_type:
+        return
+    app.logger.error("Invalid Content-Type: %s", request.headers["Content-Type"])
+    abort(status.HTTP_415_UNSUPPORTED_MEDIA_TYPE, f"Content-Type must be {content_type}")
