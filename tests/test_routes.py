@@ -217,7 +217,26 @@ class TestOrderServer(unittest.TestCase):
         )
         self.assertEqual(resp.status_code, status.HTTP_404_NOT_FOUND)
 
+    def test_bad_request(self):
+        """ Send wrong media type """
+        order = OrderFactory()
+        resp = self.app.post(
+            BASE_URL, 
+            json={"name": "not enough data"}, 
+            content_type="application/json"
+        )
+        self.assertEqual(resp.status_code, status.HTTP_400_BAD_REQUEST)
 
+    def test_unsupported_media_type(self):
+        """ Send wrong media type """
+        order = OrderFactory()
+        resp = self.app.post(
+            BASE_URL, 
+            json=order.serialize(), 
+            content_type="test/html"
+        )
+        self.assertEqual(resp.status_code, status.HTTP_415_UNSUPPORTED_MEDIA_TYPE)
+        
     def test_method_not_allowed(self):
         """ Make an illegal method call """
         resp = self.app.put(
@@ -346,6 +365,16 @@ class TestOrderServer(unittest.TestCase):
         # retrieve it back and make sure item is not there
         resp = self.app.get(
             f"{BASE_URL}/{order.id}/items/{item_id}",
+            content_type="application/json"
+        )
+        self.assertEqual(resp.status_code, status.HTTP_404_NOT_FOUND)
+
+    def test_get_item_not_found(self):
+        """ Get an Item that is not found """
+        order = self._create_order(1)[0]
+        item_list = ItemFactory.create_batch(2)
+        resp = self.app.get(
+            f"{BASE_URL}/{order.id}/items/0", 
             content_type="application/json"
         )
         self.assertEqual(resp.status_code, status.HTTP_404_NOT_FOUND)
