@@ -79,10 +79,8 @@ class Order(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     date = db.Column(db.DateTime, nullable = False)
     customer = db.Column(db.Integer, nullable=False)
-    total = db.Column(db.Float, nullable = True)
+    total = db.Column(db.Integer, nullable = True)
     status = db.Column(db.String(63), nullable=False)
-    emp = db.Column(db.Integer, nullable=True)
-
     items = db.relationship('items', backref='order', lazy=True)  
 
     
@@ -218,9 +216,9 @@ class items(db.Model):
 
     order_id = db.Column(db.Integer, db.ForeignKey('order.id'), nullable=False)          # Relate to orders DB somehow...
     product_id = db.Column(db.Integer, nullable = False)
-    quantity = db.Column(db.Float, nullable = True)
-    price = db.Column(db.Float, nullable = False)
-    total = db.Column(db.Float, nullable = True) 
+    quantity = db.Column(db.Integer, nullable = True)
+    price = db.Column(db.Integer, nullable = True)
+    total = db.Column(db.Integer, nullable = True)
 
     
     ##################################################

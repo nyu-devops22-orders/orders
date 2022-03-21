@@ -29,7 +29,7 @@ import unittest
 from werkzeug.exceptions import NotFound
 from service.models import Order, items, DataValidationError, db
 from service import app
-from .factories import OrderFactory, OrderItemsFactory
+from .factories import OrderFactory, ItemFactory
 
 DATABASE_URI = os.getenv(
     "DATABASE_URI", "postgresql://postgres:postgres@localhost:5432/testdb"
@@ -85,7 +85,7 @@ class TestOrderModel(unittest.TestCase):
 
     def _create_order_item(self):
         """ Creates fake items from factory """
-        fake_order_item = OrderItemsFactory()
+        fake_order_item = ItemFactory()
         order_item = items(
             product_id=fake_order_item.product_id,
             quantity=fake_order_item.quantity,

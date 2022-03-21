@@ -20,28 +20,9 @@ from factory.fuzzy import FuzzyChoice
 from service.models import Order, items
 
 ######################################################################
-#  O R D E R - -  F A C T O R Y
-######################################################################
-
-class OrderFactory(factory.Factory):
-    """Creates fake orders"""
-
-    class Meta:  # pylint: disable=too-few-public-methods
-        """Maps factory to data model"""
-
-        model = Order
-
-    id = factory.Sequence(lambda n: n)
-    customer = factory.Faker("random_number")        
-    date = factory.Faker("date_object")
-    total = factory.Faker("random_number")
-    status = FuzzyChoice(choices=["Open", "Closed", "Refunded"])      
- 
-
-######################################################################
 #  O R D E R _ I T E M S  - - S U B F A C T O R Y
 ######################################################################
-class OrderItemsFactory(factory.Factory):
+class ItemFactory(factory.Factory):
     """Creates fake items for to main order"""
 
     class Meta:  # pylint: disable=too-few-public-methods
@@ -50,8 +31,28 @@ class OrderItemsFactory(factory.Factory):
         model = items
 
     id = factory.Sequence(lambda n: n)
-    order_id = 0         # need this to link to main order on instantiation
-    product_id = factory.Faker('pyint', min_value=0, max_value=1000)                    
-    quantity = factory.Faker('pyint', min_value=0, max_value=1000)                       
-    price = factory.Faker('pyint', min_value=0, max_value=1000)                         
-    total = factory.Faker('pyint', min_value=0, max_value=1000)                    
+    # order_id = 0         # need this to link to main order on instantiation
+    product_id = FuzzyChoice(choices=[10, 100, 1000])                                          
+    price = FuzzyChoice(choices=[10, 100, 1000])                          
+    quantity = FuzzyChoice(choices=[10, 20, 30])
+    total = FuzzyChoice(choices=[10, 100, 1000])                
+
+
+######################################################################
+#  O R D E R - -  F A C T O R Y
+######################################################################
+
+class OrderFactory(factory.Factory):
+    """Creates fake orders"""
+
+    class Meta:  # pylint: disable=too-few-public-methods
+        """Maps factory to data model"""
+        model = Order
+
+    id = factory.Sequence(lambda n: n)
+    customer = FuzzyChoice(choices=[10, 100, 1000])       
+    date = factory.Faker("date_object")
+    total = FuzzyChoice(choices=[10, 100, 1000]) 
+    status = FuzzyChoice(choices=["Open", "Closed", "Refunded"])      
+ 
+
