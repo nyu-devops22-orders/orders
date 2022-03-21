@@ -17,7 +17,7 @@ Test Factory to make fake objects for testing
 """
 import factory
 from factory.fuzzy import FuzzyChoice
-from service.models import Order, Order_items
+from service.models import Order, items
 
 ######################################################################
 #  O R D E R - -  F A C T O R Y
@@ -42,16 +42,16 @@ class OrderFactory(factory.Factory):
 #  O R D E R _ I T E M S  - - S U B F A C T O R Y
 ######################################################################
 class OrderItemsFactory(factory.Factory):
-    """Creates fake order_items for to main order"""
+    """Creates fake items for to main order"""
 
     class Meta:  # pylint: disable=too-few-public-methods
         """Maps factory to data model"""
 
-        model = Order_items
+        model = items
 
     id = factory.Sequence(lambda n: n)
     order_id = 0         # need this to link to main order on instantiation
     product_id = factory.Faker('pyint', min_value=0, max_value=1000)                    
     quantity = factory.Faker('pyint', min_value=0, max_value=1000)                       
     price = factory.Faker('pyint', min_value=0, max_value=1000)                         
-    price_total = factory.Faker('pyint', min_value=0, max_value=1000)                    
+    total = factory.Faker('pyint', min_value=0, max_value=1000)                    

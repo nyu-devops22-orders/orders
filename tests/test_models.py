@@ -27,7 +27,7 @@ import os
 import logging
 import unittest
 from werkzeug.exceptions import NotFound
-from service.models import Order, Order_items, DataValidationError, db
+from service.models import Order, items, DataValidationError, db
 from service import app
 from .factories import OrderFactory, OrderItemsFactory
 
@@ -69,7 +69,7 @@ class TestOrderModel(unittest.TestCase):
 #  H E L P E R   M E T H O D S
 ######################################################################
 
-    def _create_order(self, order_items=[]):
+    def _create_order(self, items=[]):
         """ Creates an order from a Factory """
         fake_order = OrderFactory()
         order = Order(
@@ -77,20 +77,20 @@ class TestOrderModel(unittest.TestCase):
             date=fake_order.date, 
             status=fake_order.status, 
             total=fake_order.total,
-            order_items=order_items
+            items=items
         )
         self.assertTrue(order != None)
         self.assertEqual(order.id, None)
         return order
 
     def _create_order_item(self):
-        """ Creates fake order_items from factory """
+        """ Creates fake items from factory """
         fake_order_item = OrderItemsFactory()
-        order_item = Order_items(
+        order_item = items(
             product_id=fake_order_item.product_id,
             quantity=fake_order_item.quantity,
             price=fake_order_item.price,
-            price_total=fake_order_item.price_total,
+            total=fake_order_item.total,
         )
         self.assertTrue(order_item != None)
         self.assertEqual(order_item.id, None)
@@ -193,6 +193,16 @@ class TestOrderModel(unittest.TestCase):
         data = "this is not a dictionary"
         order = Order()
         self.assertRaises(DataValidationError, order.deserialize, data)
+    
+    def test_deserialize_with_key_error(self):
+        """ Deserialize an account with a KeyError """
+        order = Order()
+        self.assertRaises(DataValidationError, order.deserialize, {})
+
+    def test_deserialize_with_type_error(self):
+        """ Deserialize an account with a TypeError """
+        order = Order()
+        self.assertRaises(DataValidationError, order.deserialize, [])
 
     def test_find_order(self):
         """Find a Order by ID"""
@@ -233,12 +243,12 @@ class TestOrderModel(unittest.TestCase):
 
     def test_deserialize_order_item_key_error(self):
         """ Deserialize an order_item with a KeyError """
-        order_item = Order_items()
+        order_item = items()
         self.assertRaises(DataValidationError, order_item.deserialize, {})
 
     def test_deserialize_order_item_type_error(self):
         """ Deserialize an order_item with a TypeError """
-        order_item = Order_items()
+        order_item = items()
         self.assertRaises(DataValidationError, order_item.deserialize, [])
 
 
@@ -248,7 +258,7 @@ class TestOrderModel(unittest.TestCase):
         self.assertEqual(orders, [])
         order = self._create_order()
         order_item = self._create_order_item()
-        order.order_items.append(order_item)
+        order.items.append(order_item)
         order.create()
         # Assert that it was assigned an id and shows up in the database
         self.assertEqual(order.id, 1)
@@ -256,15 +266,15 @@ class TestOrderModel(unittest.TestCase):
         self.assertEqual(len(orders), 1)
 
         new_order = Order.find(order.id)
-        self.assertEqual(order.order_items[0].product_id, order_item.product_id)
+        self.assertEqual(order.items[0].product_id, order_item.product_id)
 
         order_item2 = self._create_order_item()
-        order.order_items.append(order_item2)
+        order.items.append(order_item2)
         order.update()
 
         new_order = Order.find(order.id)
-        self.assertEqual(len(order.order_items), 2)
-        self.assertEqual(order.order_items[1].product_id, order_item2.product_id)
+        self.assertEqual(len(order.items), 2)
+        self.assertEqual(order.items[1].product_id, order_item2.product_id)
 
     def test_update_order_order_item(self):
         """ Update an orders order_item """
@@ -272,7 +282,7 @@ class TestOrderModel(unittest.TestCase):
         self.assertEqual(orders, [])
 
         order_item = self._create_order_item()
-        order = self._create_order(order_items=[order_item])
+        order = self._create_order(items=[order_item])
         order.create()
         # Assert that it was assigned an id and shows up in the database
         self.assertEqual(order.id, 1)
@@ -281,7 +291,7 @@ class TestOrderModel(unittest.TestCase):
 
         # Fetch it back
         order = Order.find(order.id)
-        old_order_item = order.order_items[0]
+        old_order_item = order.items[0]
         self.assertEqual(old_order_item.quantity, order_item.quantity)
 
         old_order_item.quantity = 23
@@ -289,7 +299,7 @@ class TestOrderModel(unittest.TestCase):
 
         # Fetch it back again
         order = Order.find(order.id)
-        order_item = order.order_items[0]
+        order_item = order.items[0]
         self.assertEqual(order_item.quantity, 23)
 
     def test_delete_order_order_item(self):
@@ -298,7 +308,7 @@ class TestOrderModel(unittest.TestCase):
         self.assertEqual(orders, [])
 
         order_item = self._create_order_item()
-        order = self._create_order(order_items=[order_item])
+        order = self._create_order(items=[order_item])
         order.create()
         # Assert that it was assigned an id and shows up in the database
         self.assertEqual(order.id, 1)
@@ -307,11 +317,11 @@ class TestOrderModel(unittest.TestCase):
 
         # Fetch it back
         order = Order.find(order.id)
-        order_item = order.order_items[0]
+        order_item = order.items[0]
         order_item.delete()
         order.update()
 
         # Fetch it back again
         order = Order.find(order.id)
-        self.assertEqual(len(order.order_items), 0)
+        self.assertEqual(len(order.items), 0)
 

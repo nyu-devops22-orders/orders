@@ -26,7 +26,7 @@ DELETE /order/{id} - deletes an order record in the database
 
 from flask import jsonify, request, url_for, make_response, abort
 from werkzeug.exceptions import NotFound
-from service.models import Order, Order_items
+from service.models import Order, items
 from . import status  # HTTP Status Codes
 from . import app  # Import Flask application
 
@@ -147,31 +147,31 @@ def delete_orders(order_id):
 ######################################################################
 # LIST ORDER ITEMS
 ######################################################################
-@app.route("/orders/<int:order_id>/order_items", methods=["GET"])
-def list_order_items(order_id):
+@app.route("/orders/<int:order_id>/items", methods=["GET"])
+def list_items(order_id):
     """ Returns all of the Addresses for an Order """
     app.logger.info("Request for all Addresses for Order with id: %s", order_id)
 
-    order = Order_items.find(order_id)
+    order = items.find(order_id)
     if not order:
         abort(status.HTTP_404_NOT_FOUND, f"Order with id '{order_id}' could not be found.")
 
-    results = [order_item.serialize() for order_item in order.order_items]
+    results = [order_item.serialize() for order_item in order.items]
     return make_response(jsonify(results), status.HTTP_200_OK)
 
 
 ######################################################################
 # RETRIEVE An ORDER ITEM FROM ORDER
 ######################################################################
-@app.route("/orders/<int:order_id>/order_items/<int:id>", methods=["GET"])
-def get_order_items(order_id, id):
+@app.route("/orders/<int:order_id>/items/<int:id>", methods=["GET"])
+def get_items(order_id, id):
     """
     Get an Order Item
 
     This endpoint returns just an order item
     """
     app.logger.info("Request to retrieve Order Item %s for Order id: %s", (id, order_id))
-    order_item = Order_items.find(id)
+    order_item = items.find(id)
     if not order_item:
         abort(status.HTTP_404_NOT_FOUND, f"Order with id '{id}' could not be found.")
 
@@ -180,7 +180,7 @@ def get_order_items(order_id, id):
 ######################################################################
 # ADD AN ITEM TO AN ORDER
 ######################################################################
-@app.route('/orders/<int:order_id>/order_items', methods=['POST'])
+@app.route('/orders/<int:order_id>/items', methods=['POST'])
 def create_items(order_id):
     """
     Create an Item on an Order
@@ -193,7 +193,7 @@ def create_items(order_id):
     if not order:
         abort(status.HTTP_404_NOT_FOUND, f"Order with id '{order_id}' could not be found.")
 
-    item = Order_items()
+    item = items()
     item.deserialize(request.get_json())
     order.items.append(item)
     order.update()
