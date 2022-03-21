@@ -349,3 +349,46 @@ class TestOrderServer(unittest.TestCase):
             content_type="application/json"
         )
         self.assertEqual(resp.status_code, status.HTTP_404_NOT_FOUND)
+
+    def test_get_item_list(self):
+        """ Get a list of items """
+        # add two items to order
+        order = self._create_order(1)[0]
+        item_list = ItemFactory.create_batch(2)
+
+        # Create item 1
+        resp = self.app.post(
+            f"{BASE_URL}/{order.id}/items", 
+            json=item_list[0].serialize(), 
+            content_type="application/json"
+        )
+        self.assertEqual(resp.status_code, status.HTTP_201_CREATED)
+
+        # Create item 2
+        resp = self.app.post(
+            f"{BASE_URL}/{order.id}/items",
+            json=item_list[1].serialize(), 
+            content_type="application/json"
+        )
+        self.assertEqual(resp.status_code, status.HTTP_201_CREATED)
+
+        # get the list back and make sure there are 2
+        resp = self.app.get(
+            f"{BASE_URL}/{order.id}/items", 
+            content_type="application/json"
+        )
+        self.assertEqual(resp.status_code, status.HTTP_200_OK)
+
+        data = resp.get_json()
+        self.assertEqual(len(data), 2)
+
+
+    def test_get_item_not_found(self):
+        """ Get an Item that is not found """
+        order = self._create_order(1)[0]
+        item_list = ItemFactory.create_batch(2)
+        resp = self.app.get(
+            f"{BASE_URL}/{order.id}/items/0", 
+            content_type="application/json"
+        )
+        self.assertEqual(resp.status_code, status.HTTP_404_NOT_FOUND)
