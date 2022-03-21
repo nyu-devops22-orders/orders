@@ -171,6 +171,11 @@ class TestOrderServer(unittest.TestCase):
         resp = self.app.post(BASE_URL)
         self.assertEqual(resp.status_code, status.HTTP_415_UNSUPPORTED_MEDIA_TYPE)
 
+    def test_create_order_no_data(self):
+        """Create a Order with missing data"""
+        resp = self.app.post(BASE_URL, json={}, content_type=CONTENT_TYPE_JSON)
+        self.assertEqual(resp.status_code, status.HTTP_400_BAD_REQUEST)
+
     def test_update_order(self):
         """Update an existing Order"""
         # create a order to update
@@ -233,7 +238,7 @@ class TestOrderServer(unittest.TestCase):
             order = self._create_order(1)[0]
             order_item = OrderItemsFactory()
             resp = self.app.post(
-                f"{BASE_URL}/{order.id}/order_items",
+                f"{BASE_URL}/{order.id}/items",
                 json=order_item.serialize(), 
                 content_type="application/json"
             )
@@ -245,7 +250,7 @@ class TestOrderServer(unittest.TestCase):
 
             # retrieve it back
             resp = self.app.get(
-                f"{BASE_URL}/{order.id}/order_items/{id}",
+                f"{BASE_URL}/{order.id}/items/{id}",
                 content_type="application/json"
             )
             self.assertEqual(resp.status_code, status.HTTP_200_OK)
@@ -256,15 +261,14 @@ class TestOrderServer(unittest.TestCase):
             self.assertEqual(data["product_id"], order_item.product_id)
             self.assertEqual(data["quantity"], order_item.quantity)
             self.assertEqual(data["price"], order_item.price)
-            self.assertEqual(data["total"], order_item.price_total)
-            self.assertEqual(data["employee"], order_item.emp)
+            self.assertEqual(data["total"], order_item.total)
 
     def test_add_order_item(self):
         """ Add an order_item to an order """
         order = self._create_order(1)[0]
         order_item = OrderItemsFactory()
         resp = self.app.post(
-            f"{BASE_URL}/{order.id}/order_items",
+            f"{BASE_URL}/{order.id}/items",
             json=order_item.serialize(), 
             content_type="application/json"
         )
@@ -275,4 +279,4 @@ class TestOrderServer(unittest.TestCase):
         self.assertEqual(data["product_id"], order_item.product_id)
         self.assertEqual(data["quantity"], order_item.quantity)
         self.assertEqual(data["price"], order_item.price)
-
+        self.assertEqual(data["total"], order_item.total)

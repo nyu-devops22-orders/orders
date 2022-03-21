@@ -25,15 +25,15 @@ Attributes:
 -----------
 Date            P/O date
 Customer        Related customer account
-Order_Items     One-to-Many (Relational -- autofill)
-Total           Order Total (sum[order_items[cost_total]])
+items     One-to-Many (Relational -- autofill)
+Total           Order Total (sum[items[cost_total]])
 Status          Order Status (Open, Closed, Returned/Refund)
 Name            Employee in charge of order / input
 
 
 Model_2
 ------
-Order_items     Items associated with the order record
+items     Items associated with the order record
 
 Attributes:
 -----------
@@ -58,7 +58,7 @@ db = SQLAlchemy()
 def init_db(app):
     """Initialize the SQLAlchemy app"""
     Order.init_db(app)         # Main Orders DB
-    Order_items.init_db(app)    # Order_items DB (related via Order_ID)
+    items.init_db(app)    # items DB (related via Order_ID)
 
 
 class DataValidationError(Exception):
@@ -83,7 +83,7 @@ class Order(db.Model):
     status = db.Column(db.String(63), nullable=False)
     emp = db.Column(db.Integer, nullable=True)
 
-    order_items = db.relationship('Order_items', backref='order', lazy=True)  
+    items = db.relationship('items', backref='order', lazy=True)  
 
     
     ##################################################
@@ -91,7 +91,7 @@ class Order(db.Model):
     ##################################################
 
     def __repr__(self):
-        return "<Order %r id=[%s]>" % (self.id, self.customer, self.date)
+        return "<Order %r id=[%s] %s>" % (self.id, self.customer, self.date)
 
     def create(self):
         """
@@ -107,14 +107,14 @@ class Order(db.Model):
         """
         Updates an ORDER to the database
         """
-        logger.info("Saving %s", self.customer, self.date)
+        logger.info("Saving %s%s", self.customer, self.date)
         if not self.id:
             raise DataValidationError("Update called with empty ID field")
         db.session.commit()
 
     def delete(self):
         """Removes an ORDER from the data store"""
-        logger.info("Deleting %s", self.customer, self.date)
+        logger.info("Deleting %s%s", self.customer, self.date)
         db.session.delete(self)
         db.session.commit()
 
@@ -124,8 +124,7 @@ class Order(db.Model):
             "id": self.id,
             "customer": self.customer,
             "date": self.date,
-
-           "status": self.status,
+            "status": self.status,
  
         }
 
@@ -204,7 +203,7 @@ class Order(db.Model):
 
 
 
-class Order_items(db.Model):
+class items(db.Model):
     """
     Class that represents ITEMS in an ORDER
 
@@ -221,8 +220,7 @@ class Order_items(db.Model):
     product_id = db.Column(db.Integer, nullable = False)
     quantity = db.Column(db.Float, nullable = True)
     price = db.Column(db.Float, nullable = False)
-    price_total = db.Column(db.Float, nullable = True) 
-    emp = db.Column(db.Integer, nullable=True)                 # adding this in event DIFFERENT employee edits and adds/removes items from order ; audit purposes
+    total = db.Column(db.Float, nullable = True) 
 
     
     ##################################################
@@ -230,7 +228,7 @@ class Order_items(db.Model):
     ##################################################
 
     def __repr__(self):
-        return "<Order %r id=[%s]>" % (self.order_id, self.product_id, self.quantity)
+        return "<Order %r id=[%s] %s>" % (self.order_id, self.product_id, self.quantity)
 
     def create(self):
         """
@@ -262,10 +260,10 @@ class Order_items(db.Model):
         return {
             "id": self.id,
             "order_id": self.order_id,
-            "product id": self.product_id,
+            "product_id": self.product_id,
             "quantity": self.quantity,
-            "item cost": self.price,
-            "total": self.price_total,
+            "price": self.price,
+            "total": self.total,
         }
 
     def deserialize(self, data: dict):
@@ -280,8 +278,7 @@ class Order_items(db.Model):
             self.product_id = data["product_id"]
             self.quantity = data["quantity"]
             self.price = data["price"]
-            self.price_total = data["total"]
-            self.emp = data["employee"]
+            self.total = data["total"]
         except AttributeError as error:
             raise DataValidationError("Invalid attribute: " + error.args[0])
         except KeyError as error:
@@ -312,9 +309,23 @@ class Order_items(db.Model):
 
     @classmethod
     def all(cls) -> list:
-        """Returns all of the ORDER_ITEMS in the database"""
+        """Returns all of the items in the database"""
         logger.info("Processing all ORDER ITEMS")
         return cls.query.all()
+
+    @classmethod
+    def find(cls, id: int):
+        """Finds an ORDER by it's ID
+
+        :param id: the id of the ORDER to find
+        :type id: int
+
+        :return: an instance with the id, or None if not found
+        :rtype: ORDER
+
+        """
+        logger.info("Processing lookup for id %s ...", id)
+        return cls.query.get(id)
 
 
 
