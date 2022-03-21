@@ -112,8 +112,8 @@ def update_order(order_id):
     app.logger.info("Request to update order with id: %s", order_id)
     check_content_type("application/json")
     order = Order.find(order_id)
-    if not order:
-        raise NotFound("Order with id '{}' was not found.".format(order_id))
+    # if not order:
+    #     raise NotFound("Order with id '{}' was not found.".format(order_id))
     order.deserialize(request.get_json())
     order.id = order_id
     order.update()
@@ -153,8 +153,8 @@ def list_items(order_id):
     app.logger.info("Request for all Items for Order with id: %s", order_id)
 
     order = Order.find(order_id)
-    if not order:
-        abort(status.HTTP_404_NOT_FOUND, f"Order with id '{order_id}' could not be found.")
+    # if not order:
+    #     abort(status.HTTP_404_NOT_FOUND, f"Order with id '{order_id}' could not be found.")
 
     results = [item.serialize() for item in order.items]
     return make_response(jsonify(results), status.HTTP_200_OK)
@@ -190,8 +190,8 @@ def create_items(order_id):
     check_content_type("application/json")
 
     order = Order.find(order_id)
-    if not order:
-        abort(status.HTTP_404_NOT_FOUND, f"Order with id '{order_id}' could not be found.")
+    # if not order:
+    #     abort(status.HTTP_404_NOT_FOUND, f"Order with id '{order_id}' could not be found.")
 
     item = items()
     item.deserialize(request.get_json())
@@ -214,8 +214,8 @@ def update_items(order_id, item_id):
     check_content_type("application/json")
 
     item = items.find(item_id)
-    if not item:
-        abort(status.HTTP_404_NOT_FOUND, f"Order with id '{item_id}' could not be found.")
+    # if not item:
+    #     abort(status.HTTP_404_NOT_FOUND, f"Order with id '{item_id}' could not be found.")
 
     item.deserialize(request.get_json())
     item.id = item_id
@@ -243,22 +243,6 @@ def delete_items(order_id, item_id):
 ######################################################################
 #  U T I L I T Y   F U N C T I O N S
 ######################################################################
-def check_content_type(media_type):
-    """Checks that the media type is correct"""
-    content_type = request.headers.get("Content-Type")
-    if content_type and content_type == media_type:
-        return
-    app.logger.error("Invalid Content-Type: %s", content_type)
-    abort(
-        status.HTTP_415_UNSUPPORTED_MEDIA_TYPE,
-        "Content-Type must be {}".format(media_type),
-    )
-def init_db():
-    """ Initializes the SQLAlchemy app """
-    global app
-    Order.init_db(app)
-    items.init_db(app)
-
 def check_content_type(content_type):
     """ Checks that the media type is correct """
     if request.headers["Content-Type"] == content_type:
