@@ -26,7 +26,7 @@ DELETE /order/{id} - deletes an order record in the database
 
 from flask import jsonify, request, url_for, make_response, abort
 from werkzeug.exceptions import NotFound
-from service.models import Order, items
+from service.models import Order, items, DataValidationError
 from . import status  # HTTP Status Codes
 from . import app  # Import Flask application
 
@@ -243,16 +243,6 @@ def delete_items(order_id, item_id):
 ######################################################################
 #  U T I L I T Y   F U N C T I O N S
 ######################################################################
-def check_content_type(media_type):
-    """Checks that the media type is correct"""
-    content_type = request.headers.get("Content-Type")
-    if content_type and content_type == media_type:
-        return
-    app.logger.error("Invalid Content-Type: %s", content_type)
-    abort(
-        status.HTTP_415_UNSUPPORTED_MEDIA_TYPE,
-        "Content-Type must be {}".format(media_type),
-    )
 def init_db():
     """ Initializes the SQLAlchemy app """
     global app
