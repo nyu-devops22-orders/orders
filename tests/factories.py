@@ -50,7 +50,7 @@ class OrderFactory(factory.Factory):
         model = Order
 
     id = factory.Sequence(lambda n: n)
-    customer = FuzzyChoice(choices=[10, 100, 1000])       
+    customer = factory.Faker("name")       
     date = factory.Faker("date_object")
     total = FuzzyChoice(choices=[10, 100, 1000]) 
     status = FuzzyChoice(choices=["Open", "Closed", "Refunded"])      
