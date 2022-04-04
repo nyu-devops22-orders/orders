@@ -410,3 +410,58 @@ class TestOrderServer(unittest.TestCase):
             content_type="application/json"
         )
         self.assertEqual(resp.status_code, status.HTTP_404_NOT_FOUND)
+
+######################################################################
+# T E S T   A C T I O N S
+######################################################################
+
+    def test_cancel_order(self):
+        """ Cancel an existing Order """
+        # create an Order to cancel
+        test_order = OrderFactory()
+        test_order.status = "Open"
+        resp = self.app.post(
+            BASE_URL, 
+            json=test_order.serialize(), 
+            content_type="application/json"
+        )
+        self.assertEqual(resp.status_code, status.HTTP_201_CREATED)
+
+        data = resp.get_json()
+        order_id = data["id"]
+        logging.info(f"Created Order with id {order_id} = {data}")
+
+        # Request to cancel an Order
+        resp = self.app.put(f"{BASE_URL}/{order_id}/cancelled")
+        self.assertEqual(resp.status_code, status.HTTP_200_OK)
+
+        # Retrieve the Order and make sure it is no longer available
+        resp = self.app.get(f"{BASE_URL}/{order_id}")
+        self.assertEqual(resp.status_code, status.HTTP_200_OK)
+        data = resp.get_json()
+        self.assertEqual(data["id"], order_id)
+        self.assertEqual(data["status"], "Cancelled")
+
+    def test_cancel_cancelled(self):
+        """Cancel an Order that is already Cancelled"""
+        test_order = OrderFactory()
+        test_order.status = "Cancelled"
+        resp = self.app.post(
+            BASE_URL, 
+            json=test_order.serialize(), 
+            content_type="application/json"
+        )
+        self.assertEqual(resp.status_code, status.HTTP_201_CREATED)
+        
+        data = resp.get_json()
+        order_id = data["id"]
+        logging.info(f"Created Order with id {order_id} = {data}")
+
+        # Request to purchase an Order should fail
+        resp = self.app.put(f"{BASE_URL}/{order_id}/cancelled")
+        self.assertEqual(resp.status_code, status.HTTP_409_CONFLICT)
+
+    def test_cancel_an_order_not_found(self):
+        """Cancel an Order not found"""
+        resp = self.app.put(f"{BASE_URL}/0/cancelled")
+        self.assertEqual(resp.status_code, status.HTTP_404_NOT_FOUND)

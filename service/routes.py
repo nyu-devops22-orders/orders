@@ -140,6 +140,29 @@ def delete_orders(order_id):
     app.logger.info("Order with ID [%s] delete complete.", order_id)
     return make_response("", status.HTTP_204_NO_CONTENT)
 
+######################################################################
+# CANCEL AN ORDER
+######################################################################
+@app.route("/orders/<int:order_id>/cancelled", methods=["PUT"])
+def cancel_order(order_id):
+    """
+    Update an Order
+
+    This endpoint will cancel an Order based the body that is posted
+    """
+    app.logger.info("Request to Cancel order with id: %s", order_id)
+   
+    order = Order.find(order_id)
+    if not order:
+        abort(status.HTTP_404_NOT_FOUND, f"Order with id '{order_id}' was not found.")
+    
+    if order.status == "Cancelled":
+        abort(status.HTTP_409_CONFLICT, f"Order with id '{order_id}' was cancelled.")
+
+    order.status = "Cancelled"
+    order.update()
+    return make_response(jsonify(order.serialize()), status.HTTP_200_OK)
+
 #---------------------------------------------------------------------
 #                O R D E R   I T E M   M E T H O D S
 #---------------------------------------------------------------------
