@@ -8,12 +8,12 @@ applications:
   instances: 2
   memory: 128M
   routes:
-    - route: nyu-order-service-sp2201.us-south.cf.appdomain.cloud
+  - route: nyu-order-service-sp2201.us-south.cf.appdomain.cloud
   disk_quota: 1024M
   buildpack: python_buildpack
   timeout: 180
   services:
-    - Cloudant
+  - Cloudant
   env:
     FLASK_APP : service:app
     FLASK_DEBUG : false
