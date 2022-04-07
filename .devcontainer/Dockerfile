@@ -1,5 +1,13 @@
-# Image for a Python 3 development environment
-FROM python:3.9-slim
+# Image for a Python 3 development environment with selenium
+# FROM python:3.9-slim
+# RUN apt-get update && apt-get install -y \
+#     chromium-driver \
+#     python3-selenium
+
+# This image has selenium and chrome driver already installed
+
+FROM rofrano/pipeline-selenium:latest
+# FROM python:3.9-slim
 
 # Add any tools that are needed beyond Python 3.9
 RUN apt-get update && \
@@ -28,7 +36,7 @@ COPY requirements.txt .
 RUN python -m pip install --upgrade pip wheel && \
     pip install -r requirements.txt
 
-ENV PORT 8000
+ENV PORT 8080
 EXPOSE $PORT
 
 # Enable color terminal for docker exec bash

@@ -18,10 +18,10 @@ Order Store Service
 Paths:
 ------
 GET /orders - Returns a list all of the orders
-GET /order/{id} - Returns the order with a given id number
-POST /order - creates a new order record in the database
-PUT /order/{id} - updates an order record in the database
-DELETE /order/{id} - deletes an order record in the database
+GET /orders/{id} - Returns the order with a given id number
+POST /orders - creates a new order record in the database
+PUT /orders/{id} - updates an order record in the database
+DELETE /orders/{id} - deletes an order record in the database
 """
 
 from flask import jsonify, request, url_for, make_response, abort
@@ -31,20 +31,22 @@ from . import status  # HTTP Status Codes
 from . import app  # Import Flask application
 
 ######################################################################
+# GET HEALTH CHECK
+######################################################################
+@app.route("/healthcheck")
+def healthcheck():
+    """Let them know our heart is still beating"""
+    return make_response(jsonify(status=200, message="Healthy"), status.HTTP_200_OK)
+
+
+######################################################################
 # GET INDEX
 ######################################################################
 @app.route("/")
 def index():
-    """Root URL response"""
-    app.logger.info("Request for Root URL")
-    return (
-        jsonify(
-            name="Order Demo REST API Service",
-            version="1.0",
-            paths=url_for("list_orders", _external=True),
-        ),
-        status.HTTP_200_OK,
-    )
+    """Base URL for our service"""
+    return app.send_static_file("index.html")
+
 
 ######################################################################
 # LIST ALL ORDERS
@@ -102,7 +104,7 @@ def create_orders():
 ######################################################################
 # UPDATE AN EXISTING ORDER
 ######################################################################
-@app.route("/order/<int:order_id>", methods=["PUT"])
+@app.route("/orders/<int:order_id>", methods=["PUT"])
 def update_order(order_id):
     """
     Update an Order

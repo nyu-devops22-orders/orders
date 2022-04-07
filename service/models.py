@@ -168,7 +168,7 @@ class Order(db.Model, PersistentBase):
     id = db.Column(db.Integer, primary_key=True)
     date = db.Column(db.DateTime, nullable = False)
     customer = db.Column(db.String(63), nullable=False)
-    total = db.Column(db.Integer, nullable = True)
+    total = db.Column(db.String, nullable = True)
     status = db.Column(db.String(63), nullable=False)
     items = db.relationship('items', backref='order', lazy=True)  
 
@@ -185,7 +185,7 @@ class Order(db.Model, PersistentBase):
         return {
             "id": self.id,
             "customer": self.customer,
-            "date": self.date,
+            "date":self.date,
             "status": self.status,
  
         }
