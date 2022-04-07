@@ -8,7 +8,7 @@ import logging
 # Get configuration from environment
 DATABASE_URI = os.getenv(
     "DATABASE_URI",
-    "postgresql://eonvfwtw:mgGgMGWp4CZJ115zUyvfqZndygFEb8zC@batyr.db.elephantsql.com/eonvfwtw"
+    "postgresql://postgres:postgres@localhost:5432/testdb"
 )
 
 # override if we are running in Cloud Foundry
