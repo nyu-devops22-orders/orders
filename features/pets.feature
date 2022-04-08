@@ -35,7 +35,7 @@ Scenario: Create a Order
     Then I should see "Happy" in the "customer" field
     And I should see "100" in the "total" field
     And I should see "Open" in the "status" dropdown
-    And I should see "2020-10-12" in the "date" field
+    And I should see "2020-12-10" in the "date" field
 
 Scenario: List all orders
     When I visit the "Home Page"
@@ -46,7 +46,7 @@ Scenario: List all orders
     And I should not see "Happy" in the results
 
 Scenario: Search for status when I visit the "Home Page"
-    And I select "cancelled" in the "status" dropdown
+    And I select "Open" in the "status" dropdown
     And I press the "Search" button
     Then I should see "fido" in the results
     And I should not see "sammy" in the results
@@ -60,6 +60,8 @@ Scenario: Update a Order
     And I press the "Search" button
     Then I should see "fido" in the "customer" field
     And I should see "100" in the "total" field
+    And I should see "2019-11-18" in the "date" field
+    And I should see "Cancelled" in the "status" dropdown
     When I change "customer" to "Boxer"
     And I press the "Update" button
     Then I should see the message "Success"

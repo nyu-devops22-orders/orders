@@ -67,6 +67,7 @@ class DataValidationError(Exception):
     pass
 
 DATETIME_FORMAT= '%Y-%m-%d %H:%M:%S'
+# DATETIME_FORMAT= '%Y-%m-%d'
 
 ######################################################################
 #  P E R S I S T E N T   B A S E   M O D E L
@@ -142,11 +143,11 @@ class PersistentBase():
 
     @classmethod
     def find_by_status(cls, status:str)-> list:
-        """ Returns all Accounts with the given name
+        """ Returns all Accounts with the given status
         Args:
-            name (string): the name of the Accounts you want to match
+            status (string): the status of the Accounts you want to match
         """
-        logger.info("Processing name query for %s ...", status)
+        logger.info("Processing status query for %s ...", status)
         return cls.query.filter(cls.status == status)
 
     @classmethod

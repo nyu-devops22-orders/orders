@@ -179,7 +179,6 @@ $(function () {
     $("#search-btn").click(function () {
         let order_id = $("#order_id").val();
         let customer = $("#order_customer").val();
-        let total = $("#order_total").val();
         let status = $("#order_status").val();
         let date = $("order_date").val();
 
@@ -191,9 +190,9 @@ $(function () {
         if (status) {
             queryString += 'status=' + status
         }
-       // if (date) {
-       //     queryString += 'date=' + date
-       // }
+        if (date) {
+            queryString += 'date=' + date
+        }
 
         $("#flash_message").empty();
 
