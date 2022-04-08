@@ -230,6 +230,16 @@ class TestOrderModel(unittest.TestCase):
         self.assertEqual(same_order.id, order.id)
         self.assertEqual(same_order.customer, order.customer)
 
+    def test_find_by_status(self):
+        """ Find by status """
+        order = self._create_order()
+        order.create()
+
+        # Fetch it back by status
+        same_order = Order.find_by_status(order.status)[0]
+        self.assertEqual(same_order.id, order.id)
+        self.assertEqual(same_order.status, order.status)
+
     def test_find_or_404_found(self):
         """Find or return 404 found"""
         orders = OrderFactory.create_batch(3)
