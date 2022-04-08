@@ -66,7 +66,7 @@ class DataValidationError(Exception):
     """Used for an data validation errors when deserializing"""
     pass
 
-DATETIME_FORMAT='%Y-%m-%d %H:%M:%S.%f'
+DATETIME_FORMAT= '%Y-%m-%d %H:%M:%S'
 
 ######################################################################
 #  P E R S I S T E N T   B A S E   M O D E L
@@ -141,6 +141,15 @@ class PersistentBase():
         return cls.query.filter(cls.customer == customer)
 
     @classmethod
+    def find_by_status(cls, status:str)-> list:
+        """ Returns all Accounts with the given name
+        Args:
+            name (string): the name of the Accounts you want to match
+        """
+        logger.info("Processing name query for %s ...", status)
+        return cls.query.filter(cls.status == status)
+
+    @classmethod
     def find_or_404(cls, order_id: int):
         """Find an ORDER by it's id or 404
 
@@ -166,9 +175,9 @@ class Order(db.Model, PersistentBase):
     # Table Schema
     ##################################################
     id = db.Column(db.Integer, primary_key=True)
-    date = db.Column(db.DateTime, nullable = False)
+    date = db.Column(db.Date, nullable = True)
     customer = db.Column(db.String(63), nullable=False)
-    total = db.Column(db.String, nullable = True)
+    total = db.Column(db.Float, nullable = True)
     status = db.Column(db.String(63), nullable=False)
     items = db.relationship('items', backref='order', lazy=True)  
 
@@ -186,8 +195,8 @@ class Order(db.Model, PersistentBase):
             "id": self.id,
             "customer": self.customer,
             "date":self.date,
+            "total":self.total,
             "status": self.status,
- 
         }
 
     def deserialize(self, data: dict):
@@ -199,6 +208,7 @@ class Order(db.Model, PersistentBase):
         try:
             self.customer = data["customer"]
             self.date = data["date"]
+            self.total = data["total"]
             self.status = data["status"]
         except KeyError as error:
             raise DataValidationError("Invalid order: missing " + error.args[0])
@@ -226,7 +236,7 @@ class items(db.Model, PersistentBase):
     product_id = db.Column(db.Integer, nullable = False)
     quantity = db.Column(db.Integer, nullable = True)
     price = db.Column(db.Integer, nullable = True)
-    total = db.Column(db.Integer, nullable = True)
+    total = db.Column(db.Float, nullable = True)
 
     
     ##################################################

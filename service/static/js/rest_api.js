@@ -106,7 +106,7 @@ $(function () {
     });
 
     // ****************************************
-    // Retrieve a Pet
+    // Retrieve a Order
     // ****************************************
 
     $("#retrieve-btn").click(function () {
@@ -136,7 +136,7 @@ $(function () {
     });
 
     // ****************************************
-    // Delete a Pet
+    // Delete a Order
     // ****************************************
 
     $("#delete-btn").click(function () {
@@ -154,7 +154,7 @@ $(function () {
 
         ajax.done(function(res){
             clear_form_data()
-            flash_message("Pet has been Deleted!")
+            flash_message("Order has been Deleted!")
         });
 
         ajax.fail(function(res){
@@ -177,7 +177,7 @@ $(function () {
     // ****************************************
 
     $("#search-btn").click(function () {
-
+        let order_id = $("#order_id").val();
         let customer = $("#order_customer").val();
         let total = $("#order_total").val();
         let status = $("#order_status").val();
@@ -185,19 +185,15 @@ $(function () {
 
         let queryString = ""
 
-        if (customer) {
+       if (customer) {
             queryString += 'customer=' + customer
         }
         if (status) {
             queryString += 'status=' + status
         }
-        if (total) {
-            if (queryString.length > 0) {
-                queryString += '&total=' + total
-            } else {
-                queryString += 'total=' + total
-            }
-        }
+       // if (date) {
+       //     queryString += 'date=' + date
+       // }
 
         $("#flash_message").empty();
 
