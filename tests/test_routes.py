@@ -251,6 +251,36 @@ class TestOrderServer(unittest.TestCase):
         resp = self.app.get(f"{BASE_URL}/0")
         self.assertEqual(resp.status_code, status.HTTP_404_NOT_FOUND)
 
+    def test_query_order_list_by_customer(self):
+        """Query Orders by Customer"""
+        orders = self._create_order(10)
+        test_customer = orders[0].customer
+        customer_orders = [order for order in orders if order.customer == test_customer]
+        resp = self.app.get(
+            BASE_URL, query_string="customer={}".format(quote_plus(test_customer))
+        )
+        self.assertEqual(resp.status_code, status.HTTP_200_OK)
+        data = resp.get_json()
+        self.assertEqual(len(data), len(customer_orders))
+        # check the data just to be sure
+        for order in data:
+            self.assertEqual(order["customer"], test_customer)
+
+    def test_query_order_list_by_status(self):
+        """Query Orders by Status"""
+        orders = self._create_order(10)
+        test_status = orders[0].status
+        status_orders = [order for order in orders if order.status == test_status]
+        resp = self.app.get(
+            BASE_URL, query_string="status={}".format(quote_plus(test_status))
+        )
+        self.assertEqual(resp.status_code, status.HTTP_200_OK)
+        data = resp.get_json()
+        self.assertEqual(len(data), len(status_orders))
+        # check the data just to be sure
+        for order in data:
+            self.assertEqual(order["status"], test_status)
+
 ######################################################################
 #  O R D E R   I T E M   T E S T   C A S E S
 ######################################################################
