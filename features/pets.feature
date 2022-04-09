@@ -10,7 +10,8 @@ Background:
         | Obiwan Kenobi     | 10       | Refunded  | 2020-08-13 |
         | Mace Windu        | 1000     | Closed    | 2019-01-02 |
         | Anakin Skywalker  | 100      | Open      | 2018-06-04 |
-
+        | QuiGon Jinn       | 100      | Open      | 2018-06-04 |
+        
 Scenario: The server is running
     When I visit the "Home Page"
     Then I should see "Order Demo RESTful Service" in the title
@@ -51,6 +52,7 @@ Scenario: Search for status when I visit the "Home Page"
     And I select "Open" in the "status" dropdown
     And I press the "Search" button
     Then I should see "Anakin Skywalker" in the results
+    And I should see "QuiGon Jinn" in the results
     And I should not see "Yoda" in the results
     And I should not see "Obiwan Kenobi" in the results
     And I should not see "Mace Windu" in the results
