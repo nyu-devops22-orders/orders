@@ -172,6 +172,7 @@ def cancel_order(order_id):
 
     order.status = "Cancelled"
     order.update()
+    app.logger.info("Order with ID [%s] cancelled.", Order.id)
     return make_response(jsonify(order.serialize()), status.HTTP_200_OK)
 
 #---------------------------------------------------------------------

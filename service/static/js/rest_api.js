@@ -251,3 +251,41 @@ $(function () {
     });
 
 })
+
+    // ****************************************
+    // Cancel a Order
+    // ****************************************
+
+    $("#cancel-btn").click(function () {
+
+        let order_id = $("#order_id").val();
+        let customer = $("#order_customer").val();
+        let total = $("#order_total").val();
+        let status = $("order_status").val();
+        let date = $("#order_date").val();
+
+        let data = {
+            "customer": customer,
+            "total": total,
+            "status": status,
+            "date": date,
+        };
+
+        $("#flash_message").empty();
+
+        let ajax = $.ajax({
+                type: "PUT",
+                url: `/orders/${order_id}/cancelled`,
+                contentType: "application/json",
+                data: JSON.stringify(data)
+            })
+
+        ajax.done(function(res){
+            update_form_data(res)
+        });
+
+        ajax.fail(function(res){
+            flash_message(res.responseJSON.message)
+        });
+
+    });
