@@ -30,6 +30,7 @@ from werkzeug.exceptions import NotFound
 from service.models import Order, items, DataValidationError, db
 from service import app
 from .factories import OrderFactory, ItemFactory
+from datetime import date
 
 DATABASE_URI = os.getenv(
     "DATABASE_URI", "postgresql://postgres:postgres@localhost:5432/testdb"
@@ -103,26 +104,29 @@ class TestOrderModel(unittest.TestCase):
 
     def test_create_a_order(self):
         """Create a order and assert that it exists"""
-        order = Order(customer ="1", status="Open", date="01/01/2022")
+        order = Order(customer ="1", status="Open", date="01/01/2022", total=100)
         self.assertTrue(order is not None)
         self.assertEqual(order.date, "01/01/2022")
         self.assertEqual(order.id, None)
         self.assertEqual(order.customer, "1")
         self.assertEqual(order.status, "Open")
+        self.assertEqual(order.total, 100)
 
-        order = Order(customer ="2", status="Closed", date="02/02/2022")
+        order = Order(customer ="2", status="Closed", date="02/02/2022", total=200)
         self.assertEqual(order.status, "Closed")
         self.assertEqual(order.date, "02/02/2022")
         self.assertEqual(order.customer, "2")
+        self.assertEqual(order.total, 200)
 
     def test_add_a_order(self):
         """Create a order and add it to the database"""
         orders = Order.all()
         self.assertEqual(orders, [])
-        order = Order(customer ="1", status="Open", date="01/01/2022")
+        order = Order(customer ="1", status="Open", date="01/01/2022", total=100)
         self.assertTrue(order is not None)
         self.assertEqual(order.id, None)
         self.assertEqual(order.date, "01/01/2022")
+        self.assertEqual(order.total, 100)
         order.create()
         # Assert that it was assigned an id and shows up in the database
         self.assertEqual(order.id, 1)
@@ -170,23 +174,21 @@ class TestOrderModel(unittest.TestCase):
         self.assertIn("status", data)
         self.assertEqual(data["status"], order.status)
         self.assertIn("date", data)
-        self.assertEqual(data["date"], order.date)
+        self.assertEqual(data["date"], order.date.isoformat())
+        self.assertIn("total", data)
+        self.assertEqual(data["total"], order.total)
 
     def test_deserialize_a_order(self):
         """Test deserialization of a Order"""
-        data = {
-            "id": 1,
-            "customer": "1",
-            "status": "Open",
-            "date": "01/01/2022",
-        }
+        data = OrderFactory().serialize()
         order = Order()
         order.deserialize(data)
         self.assertNotEqual(order, None)
         self.assertEqual(order.id, None)
-        self.assertEqual(order.customer, "1")
-        self.assertEqual(order.status, "Open")
-        self.assertEqual(order.date, "01/01/2022")
+        self.assertEqual(order.customer, data["customer"])
+        self.assertEqual(order.status, data["status"])
+        self.assertEqual(order.total, data["total"])
+        self.assertEqual(order.date, date.fromisoformat(data["date"]))
 
     def test_deserialize_bad_data(self):
         """Test deserialization of bad data"""
@@ -219,6 +221,7 @@ class TestOrderModel(unittest.TestCase):
         self.assertEqual(order.customer, orders[1].customer)
         self.assertEqual(order.status, orders[1].status)
         self.assertEqual(order.date, orders[1].date)
+        self.assertEqual(order.total, orders[1].total)
 
     def test_find_by_customer(self):
         """ Find by customer """
@@ -252,6 +255,7 @@ class TestOrderModel(unittest.TestCase):
         self.assertEqual(order.customer, orders[1].customer)
         self.assertEqual(order.status, orders[1].status)
         self.assertEqual(order.date, orders[1].date)
+        self.assertEqual(order.total, orders[1].total)
 
     def test_find_or_404_not_found(self):
         """Find or return 404 NOT found"""

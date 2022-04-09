@@ -45,7 +45,7 @@ Cost Total      Total cost of line item (qty*cost)
 
 """
 import logging
-from datetime import datetime
+from datetime import datetime, date
 from enum import Enum
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
@@ -66,7 +66,7 @@ class DataValidationError(Exception):
     """Used for an data validation errors when deserializing"""
     pass
 
-DATETIME_FORMAT='%Y-%m-%d %H:%M:%S.%f'
+DATETIME_FORMAT= '%Y-%m-%d %H:%M:%S'
 
 ######################################################################
 #  P E R S I S T E N T   B A S E   M O D E L
@@ -132,6 +132,25 @@ class PersistentBase():
         return cls.query.get(id)
 
     @classmethod
+    def find_by_customer(cls, customer:str)-> list:
+        """ Returns all Accounts with the given name
+        Args:
+            name (string): the name of the Accounts you want to match
+        """
+        logger.info("Processing name query for %s ...", customer)
+        return cls.query.filter(cls.customer == customer)
+
+    @classmethod
+    def find_by_status(cls, status:str)-> list:
+        """ Returns all Accounts with the given status
+        Args:
+            status (string): the status of the Accounts you want to match
+        """
+        logger.info("Processing status query for %s ...", status)
+        return cls.query.filter(cls.status == status)
+
+    @classmethod
+
     def find_or_404(cls, order_id: int):
         """Find an ORDER by it's id or 404
 
@@ -145,6 +164,8 @@ class PersistentBase():
         logger.info("Processing lookup or 404 for id %s ...", order_id)
         return cls.query.get_or_404(order_id)
 
+
+
 class Order(db.Model, PersistentBase):
     """
     Class that represents an ORDER
@@ -157,9 +178,9 @@ class Order(db.Model, PersistentBase):
     # Table Schema
     ##################################################
     id = db.Column(db.Integer, primary_key=True)
-    date = db.Column(db.DateTime, nullable = False)
+    date = db.Column(db.Date, nullable = True)
     customer = db.Column(db.String(63), nullable=False)
-    total = db.Column(db.Integer, nullable = True)
+    total = db.Column(db.Float, nullable = True)
     status = db.Column(db.String(63), nullable=False)
     items = db.relationship('items', backref='order', lazy=True)  
 
@@ -169,16 +190,16 @@ class Order(db.Model, PersistentBase):
     ##################################################
 
     def __repr__(self):
-        return "<Order %r id=[%s] %s>" % (self.id, self.customer, self.date)
+        return "<Order %r id=[%s] %s %s>" % (self.id, self.customer, self.date, self.status)
 
     def serialize(self) -> dict:
         """Serializes an ORDER into a dictionary"""
         return {
             "id": self.id,
             "customer": self.customer,
-            "date": self.date,
+            "date":self.date.isoformat(),
+            "total":self.total,
             "status": self.status,
- 
         }
 
     def deserialize(self, data: dict):
@@ -189,7 +210,8 @@ class Order(db.Model, PersistentBase):
         """
         try:
             self.customer = data["customer"]
-            self.date = data["date"]
+            self.date = date.fromisoformat(data["date"])
+            self.total = data["total"]
             self.status = data["status"]
         except KeyError as error:
             raise DataValidationError("Invalid order: missing " + error.args[0])
@@ -236,7 +258,7 @@ class items(db.Model, PersistentBase):
     product_id = db.Column(db.Integer, nullable = False)
     quantity = db.Column(db.Integer, nullable = True)
     price = db.Column(db.Integer, nullable = True)
-    total = db.Column(db.Integer, nullable = True)
+    total = db.Column(db.Float, nullable = True)
 
     
     ##################################################
