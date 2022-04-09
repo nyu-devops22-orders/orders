@@ -43,7 +43,7 @@ $(function () {
             "customer": customer,
             "total": total,
             "status": status,
-            "date": date
+            "date": date,
         };
 
         $("#flash_message").empty();
@@ -177,21 +177,32 @@ $(function () {
     // ****************************************
 
     $("#search-btn").click(function () {
-        let order_id = $("#order_id").val();
         let customer = $("#order_customer").val();
         let status = $("#order_status").val();
         let date = $("order_date").val();
 
         let queryString = ""
 
-       if (customer) {
-            queryString += 'customer=' + customer
+        if (customer) {
+            if (queryString.length > 0) {
+                queryString += '&customer=' + customer
+            } else {
+                queryString += 'customer=' + customer
+            }
         }
         if (status) {
-            queryString += 'status=' + status
+            if (queryString.length > 0) {
+                queryString += '&status=' + status
+            } else {
+                queryString += 'status=' + status
+            }
         }
         if (date) {
-            queryString += 'date=' + date
+            if (queryString.length > 0) {
+                queryString += '&date=' + date
+            } else {
+                queryString += 'date=' + date
+            }
         }
 
         $("#flash_message").empty();
@@ -208,11 +219,11 @@ $(function () {
             $("#search_results").empty();
             let table = '<table class="table table-striped" cellpadding="10">'
             table += '<thead><tr>'
-            table += '<th class="col-md-2">id</th>'
-            table += '<th class="col-md-2">customer</th>'
-            table += '<th class="col-md-2">total</th>'
-            table += '<th class="col-md-2">status</th>'
-            table += '<th class="col-md-2">date</th>'
+            table += '<th class="col-md-2">ID</th>'
+            table += '<th class="col-md-2">Customer Name</th>'
+            table += '<th class="col-md-2">Total</th>'
+            table += '<th class="col-md-2">Status</th>'
+            table += '<th class="col-md-2">Order Date</th>'
             table += '</tr></thead><tbody>'
             let firstOrder = "";
             for(let i = 0; i < res.length; i++) {

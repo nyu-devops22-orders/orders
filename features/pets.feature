@@ -21,7 +21,7 @@ Scenario: Create a Order
     And I set the "customer" to "Happy"
     And I set the "total" to "100"
     And I select "Open" in the "status" dropdown
-    And I set the "date" to "10-12-2020"
+    And I set the "date" to "06-16-2022"
     And I press the "Create" button
     Then I should see the message "Success"
     When I copy the "Id" field
@@ -35,7 +35,7 @@ Scenario: Create a Order
     Then I should see "Happy" in the "customer" field
     And I should see "100" in the "total" field
     And I should see "Open" in the "status" dropdown
-    And I should see "2020-12-10" in the "date" field
+    And I should see "2022-06-16" in the "date" field
 
 Scenario: List all orders
     When I visit the "Home Page"
@@ -45,6 +45,7 @@ Scenario: List all orders
     And I should see "leo" in the results
     And I should not see "Happy" in the results
 
+
 Scenario: Search for status when I visit the "Home Page"
     And I select "Open" in the "status" dropdown
     And I press the "Search" button
@@ -53,6 +54,17 @@ Scenario: Search for status when I visit the "Home Page"
     And I should not see "kitty" in the results
     And I should not see "leo" in the results
     And I should not see "Happy" in the results
+
+Scenario: Delete a Order
+    When I visit the "Home Page"
+    And I set the "customer" to "fido"
+    And I press the "Search" button
+    Then I should see "fido" in the "customer" field
+    And I should see "10" in the "total" field
+    When I press the "Delete" button
+    Then I should see the message "Order has been Deleted!"
+    When I press the "Search" button
+    Then I should not see "fido" in the results
 
 Scenario: Update a Order
     When I visit the "Home Page"
@@ -74,16 +86,3 @@ Scenario: Update a Order
     And I press the "Search" button
     Then I should see "Boxer" in the results
     Then I should not see "fido" in the results
-
-Scenario: Delete a Order
-    When I visit the "Home Page"
-    And I set the "customer" to  "kitty"
-    And I press the "Search" button
-    Then I should see "kitty" in the "customer" field
-    And I should see "10" in the "total" field
-    When I press the "Delete" button
-    Then I should see the message "Order has been Deleted!"
-    When I press the "Search" button
-    Then I should not see "kitty" in the results
-
-

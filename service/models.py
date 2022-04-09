@@ -45,7 +45,7 @@ Cost Total      Total cost of line item (qty*cost)
 
 """
 import logging
-from datetime import datetime
+from datetime import datetime, date
 from enum import Enum
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
@@ -67,7 +67,6 @@ class DataValidationError(Exception):
     pass
 
 DATETIME_FORMAT= '%Y-%m-%d %H:%M:%S'
-# DATETIME_FORMAT= '%Y-%m-%d'
 
 ######################################################################
 #  P E R S I S T E N T   B A S E   M O D E L
@@ -164,6 +163,8 @@ class PersistentBase():
         logger.info("Processing lookup or 404 for id %s ...", order_id)
         return cls.query.get_or_404(order_id)
 
+
+
 class Order(db.Model, PersistentBase):
     """
     Class that represents an ORDER
@@ -195,7 +196,7 @@ class Order(db.Model, PersistentBase):
         return {
             "id": self.id,
             "customer": self.customer,
-            "date":self.date,
+            "date":self.date.isoformat(),
             "total":self.total,
             "status": self.status,
         }
@@ -208,7 +209,7 @@ class Order(db.Model, PersistentBase):
         """
         try:
             self.customer = data["customer"]
-            self.date = data["date"]
+            self.date = date.fromisoformat(data["date"])
             self.total = data["total"]
             self.status = data["status"]
         except KeyError as error:
