@@ -150,6 +150,7 @@ class PersistentBase():
         return cls.query.filter(cls.status == status)
 
     @classmethod
+
     def find_or_404(cls, order_id: int):
         """Find an ORDER by it's id or 404
 
@@ -220,6 +221,25 @@ class Order(db.Model, PersistentBase):
             )
         return self
 
+    @classmethod
+    def find_by_customer(cls, customer:str)-> list:
+        """ Returns all Orders with the given customer name
+        Args:
+            name (string): the customer name of the Orders you want to match
+        """
+        logger.info("Processing name query for %s ...", customer)
+        return cls.query.filter(cls.customer == customer)
+
+    @classmethod
+    def find_by_status(cls, status: str) -> list:
+        """Returns all Orders by their status
+        :param status: values are ["Open", "Closed", "Refunded", "Cancelled"]
+        :type status: str
+        :return: a collection of Orders that matches the status
+        :rtype: list
+        """
+        logger.info("Processing status query for %s ...", status)
+        return cls.query.filter(cls.status == status)
 
 class items(db.Model, PersistentBase):
     """

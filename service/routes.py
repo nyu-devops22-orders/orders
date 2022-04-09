@@ -64,6 +64,7 @@ def list_orders():
     else:
         orders = Order.all()
     app.logger.info("Request for Order List")
+
     results = [order.serialize() for order in orders]
     return make_response(jsonify(results), status.HTTP_200_OK)
 
