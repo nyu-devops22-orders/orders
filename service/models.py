@@ -189,7 +189,7 @@ class Order(db.Model, PersistentBase):
     ##################################################
 
     def __repr__(self):
-        return "<Order %r id=[%s] %s>" % (self.id, self.customer, self.date)
+        return "<Order %r id=[%s] %s %s>" % (self.id, self.customer, self.date, self.status)
 
     def serialize(self) -> dict:
         """Serializes an ORDER into a dictionary"""

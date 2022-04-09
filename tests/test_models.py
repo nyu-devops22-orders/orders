@@ -30,6 +30,7 @@ from werkzeug.exceptions import NotFound
 from service.models import Order, items, DataValidationError, db
 from service import app
 from .factories import OrderFactory, ItemFactory
+from datetime import date
 
 DATABASE_URI = os.getenv(
     "DATABASE_URI", "postgresql://postgres:postgres@localhost:5432/testdb"
@@ -173,27 +174,21 @@ class TestOrderModel(unittest.TestCase):
         self.assertIn("status", data)
         self.assertEqual(data["status"], order.status)
         self.assertIn("date", data)
-        self.assertEqual(data["date"], order.date)
+        self.assertEqual(data["date"], order.date.isoformat())
         self.assertIn("total", data)
         self.assertEqual(data["total"], order.total)
 
     def test_deserialize_a_order(self):
         """Test deserialization of a Order"""
-        data = {
-            "id": 1,
-            "customer": "1",
-            "status": "Open",
-            "date": "01/01/2022",
-            "total":"100"
-        }
+        data = OrderFactory().serialize()
         order = Order()
         order.deserialize(data)
         self.assertNotEqual(order, None)
         self.assertEqual(order.id, None)
-        self.assertEqual(order.customer, "1")
-        self.assertEqual(order.status, "Open")
-        self.assertEqual(order.date, "01/01/2022")
-        self.assertEqual(order.total, "100")
+        self.assertEqual(order.customer, data["customer"])
+        self.assertEqual(order.status, data["status"])
+        self.assertEqual(order.total, data["total"])
+        self.assertEqual(order.date, date.fromisoformat(data["date"]))
 
     def test_deserialize_bad_data(self):
         """Test deserialization of bad data"""

@@ -47,10 +47,11 @@ Scenario: List all orders
 
 
 Scenario: Search for status when I visit the "Home Page"
+    When I visit the "Home Page"        
     And I select "Open" in the "status" dropdown
     And I press the "Search" button
-    Then I should see "fido" in the results
-    And I should not see "sammy" in the results
+    Then I should see "sammy" in the results
+    And I should not see "fido" in the results
     And I should not see "kitty" in the results
     And I should not see "leo" in the results
     And I should not see "Happy" in the results
