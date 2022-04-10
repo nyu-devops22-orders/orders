@@ -15,26 +15,26 @@
 ## Installation
 1. Navigate to your local DevOps folder
 2. Clone the repo
-```
+```python
 $ git clone https://github.com/nyu-devops22-orders/orders.git
 ```
 3. Change directory (cd)
 
-```
+```python
  $ cd orders
 ```
 4. Open VSCode in current directory
-```
+```python
  $ code . 
 ```
 5. Open in Container - ***Make sure docker is running or you won't be able to open in container***
 7. Pull up-to-date code from GitHub
-```
+```python
 $ git pull
 ```
 
 ## Running the Service
-```
+```python
 # Run unit tests
 $ nosetests
 
@@ -59,7 +59,7 @@ $ behave
 
 #### Look into postgresql db 
 1. Launch Git Bash (Windows) or Terminal (MacOS / Linux)
-```
+```python
 # Run docker container
 docker exec -it orders_devcontainer_postgres_1 bash
 
@@ -81,13 +81,13 @@ The package psycopg2 doesn't work on IBM Cloud Foundry and is replaced with psyc
 <br>
 <br>
 From
-```
+```python
 psycopg2-binary==2.9.3
 # psycopg2==2.9.3
 
 ```
 To
-```
+```python
 # psycopg2-binary==2.9.3
 psycopg2==2.9.3
 ```
