@@ -1,8 +1,17 @@
-# NYU DevOps - Spring 2022
+# NYU DevOps (SP22) - ORDERS Team
 [![CI Build](https://github.com/nyu-devops22-orders/orders/actions/workflows/workflow.yml/badge.svg)](https://github.com/nyu-devops22-orders/orders/actions/workflows/workflow.yml)   [![BDD Build](https://github.com/nyu-devops22-orders/orders/actions/workflows/bdd.yml/badge.svg)](https://github.com/nyu-devops22-orders/orders/actions/workflows/bdd.yml)
 
-This is the order's team repository containing the working files for our Spring 2022 DevOps course. 
-
+### Current Project Status
+```
+# | Description                              | Status     
+---|------------------------------------------|------------
+ 1 | Add Query And Action Routes              | Complete   
+ 2 | Add Continuous Integration               | Complete   
+ 3 | Deploy To Cloud                          | Complete   
+ 4 | Implement A Ui W/ Automated Testing      | Complete   
+ 5 | Refactor Using Flask-Restx And Swagger   | Incomplete 
+ 6 | Build An Automated Ci/cd Devops Pipeline | Incomplete 
+```
 ## Installation
 1. Navigate to your local DevOps folder
 2. Clone the repo
