@@ -27,8 +27,8 @@ $ git clone https://github.com/nyu-devops22-orders/orders.git
 ```
  $ code . 
 ```
-5. Open in Container
-6. Pull up-to-date code from GitHub
+5. Open in Container - ***Make sure docker is running or you won't be able to open in container***
+7. Pull up-to-date code from GitHub
 ```
 $ git pull
 ```
