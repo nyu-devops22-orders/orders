@@ -44,6 +44,15 @@ $ honcho start
 # Run behave tests
 $ behave
 ```
+## Interacting with the WebUI
+- Navigate to <a href="http://localhost:8080">localhost:8080</a>
+- Try various actions
+  - Add new order w/ new customer
+  - Add new order w/ existing customer
+  - Delete order
+  - Update an order's information
+  - Cancel an order
+  - Search for an order by: Customer, Date, Status
 
 
 ## Utility
