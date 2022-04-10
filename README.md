@@ -1,6 +1,5 @@
 # NYU DevOps (SP22) - ORDERS Team
 [![CI Build](https://github.com/nyu-devops22-orders/orders/actions/workflows/workflow.yml/badge.svg)](https://github.com/nyu-devops22-orders/orders/actions/workflows/workflow.yml)   [![BDD Build](https://github.com/nyu-devops22-orders/orders/actions/workflows/bdd.yml/badge.svg)](https://github.com/nyu-devops22-orders/orders/actions/workflows/bdd.yml)  [![codecov](https://codecov.io/gh/nyu-devops22-orders/orders/branch/main/graph/badge.svg?token=NH44EBYAS1)](https://codecov.io/gh/nyu-devops22-orders/orders)
-
 ### Current Project Status
 ```
 # | Description                              | Status     
@@ -97,5 +96,6 @@ psycopg2==2.9.3
 <br>
 <a href="https://cloud.ibm.com/devops/pipelines/feab792f-5e52-4959-a71b-0dbb1abb0d70?env_id=ibm:yp:us-south">IBM Cloud Pipeline</a>
 
+![Jokes Card](https://readme-jokes.vercel.app/api)
 
 
