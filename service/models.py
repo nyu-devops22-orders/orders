@@ -132,25 +132,6 @@ class PersistentBase():
         return cls.query.get(id)
 
     @classmethod
-    def find_by_customer(cls, customer:str)-> list:
-        """ Returns all Accounts with the given name
-        Args:
-            name (string): the name of the Accounts you want to match
-        """
-        logger.info("Processing name query for %s ...", customer)
-        return cls.query.filter(cls.customer == customer)
-
-    @classmethod
-    def find_by_status(cls, status:str)-> list:
-        """ Returns all Accounts with the given status
-        Args:
-            status (string): the status of the Accounts you want to match
-        """
-        logger.info("Processing status query for %s ...", status)
-        return cls.query.filter(cls.status == status)
-
-    @classmethod
-
     def find_or_404(cls, order_id: int):
         """Find an ORDER by it's id or 404
 
