@@ -54,18 +54,20 @@ def index():
 @app.route("/orders", methods=["GET"])
 def list_orders():
     """Returns all of the Orders"""
+    app.logger.info("Request for Order List")
+    
     orders = []
     customer = request.args.get("customer")
     order_status = request.args.get("status")
-    if order_status:
-        orders = Order.find_by_status(order_status)
-    elif customer:
+    if customer:
         orders = Order.find_by_customer(customer)
+    elif order_status:
+        orders = Order.find_by_status(order_status)
     else:
         orders = Order.all()
-    app.logger.info("Request for Order List")
 
     results = [order.serialize() for order in orders]
+    app.logger.info("Returning %d orders", len(results))
     return make_response(jsonify(results), status.HTTP_200_OK)
 
 ######################################################################
