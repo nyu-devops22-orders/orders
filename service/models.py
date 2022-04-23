@@ -61,6 +61,8 @@ def init_db(app):
     Order.init_db(app)         # Main Orders DB
     items.init_db(app)    # items DB (related via Order_ID)
 
+class DatabaseConnectionError(Exception):
+    """Custom Exception when database connection fails"""
 
 class DataValidationError(Exception):
     """Used for an data validation errors when deserializing"""
@@ -79,7 +81,7 @@ class PersistentBase():
         Creates an ORDER to the database
         """
         logger.info("Creating %s", self.id)
-        self.id = None  # id must be none to generate next primary key
+        # self.id = None  # id must be none to generate next primary key
         db.session.add(self)
         db.session.commit()
 
@@ -110,6 +112,11 @@ class PersistentBase():
         db.init_app(app)
         app.app_context().push()
         db.create_all()  # make our sqlalchemy tables
+
+    @classmethod
+    def remove_all(cls):
+        """Removes all documents from the database (use for testing)"""
+        db.drop_all()
 
     @classmethod
     def all(cls) -> list:
@@ -190,9 +197,10 @@ class Order(db.Model, PersistentBase):
             data (dict): A dictionary containing the Order data
         """
         try:
+            self.id = int(data["id"])
             self.customer = data["customer"]
             self.date = date.fromisoformat(data["date"])
-            self.total = data["total"]
+            self.total = float(data["total"])
             self.status = data["status"]
         except KeyError as error:
             raise DataValidationError("Invalid order: missing " + error.args[0])
