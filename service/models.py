@@ -81,7 +81,7 @@ class PersistentBase():
         Creates an ORDER to the database
         """
         logger.info("Creating %s", self.id)
-        # self.id = None  # id must be none to generate next primary key
+        self.id = None  # id must be none to generate next primary key
         db.session.add(self)
         db.session.commit()
 
@@ -197,7 +197,6 @@ class Order(db.Model, PersistentBase):
             data (dict): A dictionary containing the Order data
         """
         try:
-            self.id = int(data["id"])
             self.customer = data["customer"]
             self.date = date.fromisoformat(data["date"])
             self.total = float(data["total"])

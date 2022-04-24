@@ -301,29 +301,6 @@ class OrderCollection(Resource):
         location_url = api.url_for(OrderResource, order_id=order.id, _external=True)
         return order.serialize(), status.HTTP_201_CREATED, {"Location": location_url}
 
-    #------------------------------------------------------------------
-    # DELETE ALL ORDERS (for testing only)
-    #------------------------------------------------------------------
-    @api.doc('delete_all_orders', security='apikey')
-    @api.response(204, 'All Orders deleted')
-    @token_required
-    def delete(self):
-        """
-        Delete all Order
-
-        This endpoint will delete all Order only if the system is under test
-        """
-        app.logger.info('Request to Delete all orders...')
-        if "TESTING" in app.config and app.config["TESTING"]:
-            Order.remove_all()
-            app.logger.info("Removed all Orders from the database")
-        else:
-            app.logger.warning("Request to clear database while system not under test")
-
-        return '', status.HTTP_204_NO_CONTENT
-
-
-
 ######################################################################
 # PATH: /orders/{id}/cancelled
 ######################################################################
@@ -352,6 +329,86 @@ class CancelResource(Resource):
         return order.serialize(), status.HTTP_200_OK
 
 ######################################################################
+#  PATH: /orders/{order_id}/items/{id}
+######################################################################
+@api.route('/orders/<int:order_id>/items/<int:id>', strict_slashes=False)
+class OrderItemsResource(Resource):
+    """
+    OrderItemResource class
+    Allows the manipulation of a single Order Item
+    GET /orders/{order_id}/items/{id} - Returns a Order Item with the id
+    PUT /orders/{order_id}/items/{id} - Update a Order Item with the id
+    DELETE /orders/{order_id}/items/{id} -  Deletes a Order Item with the id
+    """
+
+    ######################################################################
+    # RETRIEVE An ORDER ITEM FROM ORDER
+    ######################################################################
+    @api.doc('get_items')
+    @api.response(404, 'Item not found')
+    @api.marshal_with(item_model)
+    def get(self, order_id, id):
+        """
+        Get an Order Item
+
+        This endpoint returns just an order item
+        """
+        app.logger.info("Request to retrieve Order Item %s for Order id: %s", (id, order_id))
+        item = items.find(id)
+        if not item:
+            abort(status.HTTP_404_NOT_FOUND, f"Order with id '{id}' could not be found.")
+
+        return item.serialize(), status.HTTP_200_OK
+
+    ######################################################################
+    # UPDATE AN ITEM
+    ######################################################################
+    @api.doc('update_items', security='apikey')
+    @api.response(404, 'Item not found')
+    @api.response(400, 'The posted Item data was not valid')
+    @api.expect(item_model)
+    @api.marshal_with(item_model)
+    @token_required
+    def put(self, order_id, id):
+        """
+        Update an Item
+
+        This endpoint will update an Item based the body that is posted
+        """
+        app.logger.info("Request to update Item %s for Order id: %s", (id, order_id))
+        check_content_type("application/json")
+
+        item = items.find(id)
+        if not item:
+            abort(status.HTTP_404_NOT_FOUND, f"Order with id '{id}' could not be found.")
+
+        item.deserialize(api.payload)
+        item.id = id
+        item.update()
+        return item.serialize(), status.HTTP_200_OK
+
+    ######################################################################
+    # DELETE AN ITEM
+    ######################################################################
+    @api.doc('delete_items', security='apikey')
+    @api.response(204, 'Order Item deleted')
+    @token_required
+    def delete(self, order_id, id):
+        """
+        Delete an Item
+
+        This endpoint will delete an Item based the id specified in the path
+        """
+        app.logger.info("Request to delete Item %s for Order id: %s", (id, order_id))
+
+        item = items.find(id)
+        if item:
+            item.delete()
+
+        return make_response("", status.HTTP_204_NO_CONTENT)
+
+
+######################################################################
 #  PATH: /orders/{id}/items
 ######################################################################
 @api.route('/orders/<int:order_id>/items', strict_slashes=False)
@@ -362,11 +419,8 @@ class OrderItemsCollection(Resource):
     # LIST ORDER ITEMS
     ######################################################################
     @api.doc('list_items')
-    @api.expect(order_args, validate=True)
     @api.marshal_list_with(item_model)
-    
-    @app.route("/orders/<int:order_id>/items", methods=["GET"])
-    def list_items(order_id):
+    def get(self, order_id):
         """ Returns all of the Items for an Order """
         app.logger.info("Request for all Items for Order with id: %s", order_id)
 
@@ -375,88 +429,35 @@ class OrderItemsCollection(Resource):
             abort(status.HTTP_404_NOT_FOUND, f"Order with id '{order_id}' could not be found.")
 
         results = [item.serialize() for item in order.items]
-        return make_response(jsonify(results), status.HTTP_200_OK)
+        return results, status.HTTP_200_OK
 
 
-######################################################################
-# RETRIEVE An ORDER ITEM FROM ORDER
-######################################################################
-@app.route("/orders/<int:order_id>/items/<int:id>", methods=["GET"])
-def get_items(order_id, id):
-    """
-    Get an Order Item
+    ######################################################################
+    # ADD AN ITEM TO AN ORDER
+    ######################################################################
+    @api.doc('create_items', security='apikey')
+    @api.response(400, 'The posted data was not valid')
+    @api.expect(create_model)
+    @api.marshal_with(item_model, code=201)
+    @token_required
+    def post(self, order_id):
+        """
+        Create an Item on an Order
+        This endpoint will add an item to an order
+        """
+        app.logger.info("Request to create an Item for Order with id: %s", order_id)
+        check_content_type("application/json")
 
-    This endpoint returns just an order item
-    """
-    app.logger.info("Request to retrieve Order Item %s for Order id: %s", (id, order_id))
-    item = items.find(id)
-    if not item:
-        abort(status.HTTP_404_NOT_FOUND, f"Order with id '{id}' could not be found.")
+        order = Order.find(order_id)
+        if not order:
+            abort(status.HTTP_404_NOT_FOUND, f"Order with id '{order_id}' could not be found.")
 
-    return make_response(jsonify(item.serialize()), status.HTTP_200_OK)
-
-######################################################################
-# ADD AN ITEM TO AN ORDER
-######################################################################
-@app.route('/orders/<int:order_id>/items', methods=['POST'])
-def create_items(order_id):
-    """
-    Create an Item on an Order
-    This endpoint will add an item to an order
-    """
-    app.logger.info("Request to create an Item for Order with id: %s", order_id)
-    check_content_type("application/json")
-
-    order = Order.find(order_id)
-    if not order:
-        abort(status.HTTP_404_NOT_FOUND, f"Order with id '{order_id}' could not be found.")
-
-    item = items()
-    item.deserialize(request.get_json())
-    order.items.append(item)
-    order.update()
-    message = item.serialize()
-    return make_response(jsonify(message), status.HTTP_201_CREATED)
-
-######################################################################
-# UPDATE AN ITEM
-######################################################################
-@app.route("/orders/<int:order_id>/items/<int:item_id>", methods=["PUT"])
-def update_items(order_id, item_id):
-    """
-    Update an Item
-
-    This endpoint will update an Item based the body that is posted
-    """
-    app.logger.info("Request to update Item %s for Order id: %s", (item_id, order_id))
-    check_content_type("application/json")
-
-    item = items.find(item_id)
-    if not item:
-        abort(status.HTTP_404_NOT_FOUND, f"Order with id '{item_id}' could not be found.")
-
-    item.deserialize(request.get_json())
-    item.id = item_id
-    item.update()
-    return make_response(jsonify(item.serialize()), status.HTTP_200_OK)
-
-######################################################################
-# DELETE AN ITEM
-######################################################################
-@app.route("/orders/<int:order_id>/items/<int:item_id>", methods=["DELETE"])
-def delete_items(order_id, item_id):
-    """
-    Delete an Item
-
-    This endpoint will delete an Item based the id specified in the path
-    """
-    app.logger.info("Request to delete Item %s for Order id: %s", (item_id, order_id))
-
-    item = items.find(item_id)
-    if item:
-        item.delete()
-
-    return make_response("", status.HTTP_204_NO_CONTENT)
+        item = items()
+        item.deserialize(request.get_json())
+        order.items.append(item)
+        order.update()
+        message = item.serialize()
+        return message, status.HTTP_201_CREATED
 
 ######################################################################
 #  U T I L I T Y   F U N C T I O N S
