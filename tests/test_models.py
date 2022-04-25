@@ -48,6 +48,7 @@ class TestOrderModel(unittest.TestCase):
         """This runs once before the entire test suite"""
         app.config["TESTING"] = "1"
         app.config["DEBUG"] = "2"
+        app.config["SQLALCHEMY_POOL_SIZE"] = 2
         app.config["SQLALCHEMY_DATABASE_URI"] = DATABASE_URI
         app.logger.setLevel(logging.CRITICAL)
         Order.init_db(app)
