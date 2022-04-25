@@ -18,6 +18,7 @@ Package for the application models and service routes
 This module creates and configures the Flask app and sets up the logging
 and SQL database
 """
+import os
 import sys
 import logging
 from flask import Flask
@@ -25,6 +26,12 @@ from flask import Flask
 # Create Flask application
 app = Flask(__name__)
 app.config.from_object("config")
+
+app.url_map.strict_slashes = False
+
+app.config['SECRET_KEY'] = 'secret-for-dev'
+app.config['LOGGING_LEVEL'] = logging.INFO
+#app.config['API_KEY'] = os.getenv('API_KEY')
 
 # Import the routes After the Flask app is created
 # pylint: disable=wrong-import-position, cyclic-import
@@ -57,3 +64,5 @@ except Exception as error:  # pylint: disable=broad-except
     sys.exit(4)
 
 app.logger.info("Service initialized!")
+
+    

@@ -58,9 +58,11 @@ db = SQLAlchemy()
 
 def init_db(app):
     """Initialize the SQLAlchemy app"""
-    Order.init_db(app)         # Main Orders DB
-    items.init_db(app)    # items DB (related via Order_ID)
+    Order.init_db(app)      # Main Orders DB
+    items.init_db(app)      # items DB (related via Order_ID)
 
+class DatabaseConnectionError(Exception):
+    """Custom Exception when database connection fails"""
 
 class DataValidationError(Exception):
     """Used for an data validation errors when deserializing"""
@@ -110,6 +112,11 @@ class PersistentBase():
         db.init_app(app)
         app.app_context().push()
         db.create_all()  # make our sqlalchemy tables
+
+    @classmethod
+    def remove_all(cls):
+        """Removes all documents from the database (use for testing)"""
+        db.drop_all()
 
     @classmethod
     def all(cls) -> list:
@@ -192,7 +199,7 @@ class Order(db.Model, PersistentBase):
         try:
             self.customer = data["customer"]
             self.date = date.fromisoformat(data["date"])
-            self.total = data["total"]
+            self.total = float(data["total"])
             self.status = data["status"]
         except KeyError as error:
             raise DataValidationError("Invalid order: missing " + error.args[0])

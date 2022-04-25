@@ -66,6 +66,7 @@ class TestOrderModel(unittest.TestCase):
         """This runs after each test"""
         db.session.remove()
         db.drop_all()
+
 ######################################################################
 #  H E L P E R   M E T H O D S
 ######################################################################
@@ -96,7 +97,6 @@ class TestOrderModel(unittest.TestCase):
         self.assertTrue(order_item != None)
         self.assertEqual(order_item.id, None)
         return order_item
-
 
     ######################################################################
     #  T E S T   C A S E S - ORDERS
