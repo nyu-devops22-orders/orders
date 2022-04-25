@@ -60,6 +60,7 @@ class TestOrderServer(unittest.TestCase):
         app.config["TESTING"] = True
         app.config["DEBUG"] = False
         # Set up the test database
+        app.config["SQLALCHEMY_POOL_SIZE"] = 2
         app.config["SQLALCHEMY_DATABASE_URI"] = DATABASE_URI
         app.logger.setLevel(logging.CRITICAL)
         init_db(app)
