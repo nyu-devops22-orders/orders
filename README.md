@@ -8,7 +8,7 @@
  2 | Add Continuous Integration               | Complete   
  3 | Deploy To Cloud                          | Complete   
  4 | Implement A Ui W/ Automated Testing      | Complete   
- 5 | Refactor Using Flask-Restx And Swagger   | Incomplete 
+ 5 | Refactor Using Flask-Restx And Swagger   | Complete 
  6 | Build An Automated Ci/cd Devops Pipeline | Incomplete 
 ```
 ## Installation
