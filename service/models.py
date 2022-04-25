@@ -44,13 +44,23 @@ Quantity        Amount of items purchased
 Cost Total      Total cost of line item (qty*cost)
 
 """
+import os
+import json
 import logging
 from datetime import datetime, date
 from enum import Enum
+from retry import retry
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
+from requests import HTTPError, ConnectionError
 
 logger = logging.getLogger("flask.app")
+
+# global variables for retry (must be int)
+RETRY_COUNT = int(os.environ.get("RETRY_COUNT", 10))
+RETRY_DELAY = int(os.environ.get("RETRY_DELAY", 1))
+RETRY_BACKOFF = int(os.environ.get("RETRY_BACKOFF", 2))
+
 
 # Create the SQLAlchemy object to be initialized later in init_db()
 db = SQLAlchemy()
@@ -92,13 +102,24 @@ class PersistentBase():
         logger.info("Updating %s", self.id)
         db.session.commit()
 
+
+
     def delete(self):
         """ Removes an ORDER from the data store """
         logger.info("Deleting %s", self.id)
         db.session.delete(self)
         db.session.commit()
 
+
+
     @classmethod
+    @retry(
+        HTTPError,
+        delay=RETRY_DELAY,
+        backoff=RETRY_BACKOFF,
+        tries=RETRY_COUNT,
+        logger=logger,
+    )
     def init_db(cls, app):
         """Initializes the database session
         
@@ -114,17 +135,38 @@ class PersistentBase():
         db.create_all()  # make our sqlalchemy tables
 
     @classmethod
+    @retry(
+        HTTPError,
+        delay=RETRY_DELAY,
+        backoff=RETRY_BACKOFF,
+        tries=RETRY_COUNT,
+        logger=logger,
+    )    
     def remove_all(cls):
         """Removes all documents from the database (use for testing)"""
         db.drop_all()
 
     @classmethod
+    @retry(
+        HTTPError,
+        delay=RETRY_DELAY,
+        backoff=RETRY_BACKOFF,
+        tries=RETRY_COUNT,
+        logger=logger,
+    )
     def all(cls) -> list:
         """Returns all of the ORDERS in the database"""
         logger.info("Processing all ORDERS")
         return cls.query.all()
 
     @classmethod
+    @retry(
+        HTTPError,
+        delay=RETRY_DELAY,
+        backoff=RETRY_BACKOFF,
+        tries=RETRY_COUNT,
+        logger=logger,
+    )
     def find(cls, id: int):
         """Finds an ORDER by it's ID
 
@@ -139,6 +181,13 @@ class PersistentBase():
         return cls.query.get(id)
 
     @classmethod
+    @retry(
+        HTTPError,
+        delay=RETRY_DELAY,
+        backoff=RETRY_BACKOFF,
+        tries=RETRY_COUNT,
+        logger=logger,
+    )
     def find_or_404(cls, order_id: int):
         """Find an ORDER by it's id or 404
 
@@ -210,6 +259,13 @@ class Order(db.Model, PersistentBase):
         return self
 
     @classmethod
+    @retry(
+        HTTPError,
+        delay=RETRY_DELAY,
+        backoff=RETRY_BACKOFF,
+        tries=RETRY_COUNT,
+        logger=logger,
+    )
     def find_by_customer(cls, customer:str)-> list:
         """ Returns all Orders with the given customer name
         Args:
@@ -219,6 +275,13 @@ class Order(db.Model, PersistentBase):
         return cls.query.filter(cls.customer == customer)
 
     @classmethod
+    @retry(
+        HTTPError,
+        delay=RETRY_DELAY,
+        backoff=RETRY_BACKOFF,
+        tries=RETRY_COUNT,
+        logger=logger,
+    )
     def find_by_status(cls, status: str) -> list:
         """Returns all Orders by their status
         :param status: values are ["Open", "Closed", "Refunded", "Cancelled"]
