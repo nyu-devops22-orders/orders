@@ -32,15 +32,6 @@ from flask_restx import Api, Resource, fields, reqparse, inputs
 from service.models import Order, items, DataValidationError, DatabaseConnectionError
 from . import app, status  # HTTP Status Codes
 
-# Document the type of autorization required
-authorizations = {
-    'apikey': {
-        'type': 'apiKey',
-        'in': 'header',
-        'name': 'X-Api-Key'
-    }
-}
-
 
 ######################################################################
 # Configure the Root route before OpenAPI
@@ -60,8 +51,6 @@ api = Api(app,
           default='orders',
           default_label='Order operations',
           doc='/apidocs', # default also could use doc='/apidocs/'
-          authorizations=authorizations,
-          prefix='/api'
          )
 
 
@@ -139,31 +128,6 @@ def database_connection_error(error):
 
 
 ######################################################################
-# Authorization Decorator
-######################################################################
-def token_required(f):
-    @wraps(f)
-    def decorated(*args, **kwargs):
-        token = None
-        if 'X-Api-Key' in request.headers:
-            token = request.headers['X-Api-Key']
-
-        if app.config.get('API_KEY') and app.config['API_KEY'] == token:
-            return f(*args, **kwargs)
-        else:
-            return {'message': 'Invalid or missing token'}, 401
-    return decorated
-
-
-######################################################################
-# Function to generate a random API key (good for testing)
-######################################################################
-def generate_apikey():
-    """ Helper function used when testing API keys """
-    return secrets.token_hex(16)
-
-
-######################################################################
 #  PATH: /orders/{id}
 ######################################################################
 @api.route('/orders/<order_id>')
@@ -200,12 +164,11 @@ class OrderResource(Resource):
     ######################################################################
     # UPDATE AN EXISTING ORDER
     ######################################################################
-    @api.doc('update_orders', security='apikey')
+    @api.doc('update_orders')
     @api.response(404, 'Order not found')
     @api.response(400, 'The posted Order data was not valid')
     @api.expect(order_model)
     @api.marshal_with(order_model)
-    @token_required
     def put(self, order_id):
         """
         Update an Order
@@ -229,9 +192,8 @@ class OrderResource(Resource):
     ######################################################################
     # DELETE AN ORDER
     ######################################################################
-    @api.doc('delete_orders', security='apikey')
+    @api.doc('delete_orders')
     @api.response(204, 'Order deleted')
-    @token_required
     def delete(self, order_id):
         """
         Delete a Order
@@ -281,11 +243,10 @@ class OrderCollection(Resource):
     ######################################################################
     # ADD A NEW ORDER
     ######################################################################
-    @api.doc('create_orders', security='apikey')
+    @api.doc('create_orders')
     @api.response(400, 'The posted data was not valid')
     @api.expect(create_model)
     @api.marshal_with(order_model, code=201)
-    @token_required
     def post(self):
         """
         Creates a Order
@@ -363,12 +324,11 @@ class OrderItemsResource(Resource):
     ######################################################################
     # UPDATE AN ITEM
     ######################################################################
-    @api.doc('update_items', security='apikey')
+    @api.doc('update_items')
     @api.response(404, 'Item not found')
     @api.response(400, 'The posted Item data was not valid')
     @api.expect(item_model)
     @api.marshal_with(item_model)
-    @token_required
     def put(self, order_id, id):
         """
         Update an Item
@@ -390,9 +350,8 @@ class OrderItemsResource(Resource):
     ######################################################################
     # DELETE AN ITEM
     ######################################################################
-    @api.doc('delete_items', security='apikey')
+    @api.doc('delete_items')
     @api.response(204, 'Order Item deleted')
-    @token_required
     def delete(self, order_id, id):
         """
         Delete an Item
@@ -435,11 +394,10 @@ class OrderItemsCollection(Resource):
     ######################################################################
     # ADD AN ITEM TO AN ORDER
     ######################################################################
-    @api.doc('create_items', security='apikey')
+    @api.doc('create_items')
     @api.response(400, 'The posted data was not valid')
     @api.expect(create_model)
     @api.marshal_with(item_model, code=201)
-    @token_required
     def post(self, order_id):
         """
         Create an Item on an Order

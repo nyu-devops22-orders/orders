@@ -32,19 +32,19 @@ import unittest
 from datetime import datetime
 
 from urllib.parse import quote_plus
-from service import app, routes, status
+from service import app, status
 from service.models import db, init_db
 from .factories import OrderFactory, ItemFactory
 
 # Disable all but critical errors during normal test run
 # uncomment for debugging failing tests
-# logging.disable(logging.CRITICAL)
+logging.disable(logging.CRITICAL)
 
 # DATABASE_URI = os.getenv('DATABASE_URI', 'sqlite:///../db/test.db')
 DATABASE_URI = os.getenv(
     "DATABASE_URI", "postgresql://postgres:postgres@localhost:5432/testdb"
 )
-BASE_API = "/api/orders"
+BASE_URL = "/orders"
 CONTENT_TYPE_JSON = "application/json"
 
 
@@ -58,24 +58,23 @@ class TestOrderServer(unittest.TestCase):
     def setUpClass(cls):
         """Run once before all tests"""
         app.config["TESTING"] = True
-        api_key = routes.generate_apikey()
+        app.config["DEBUG"] = False
         # Set up the test database
-        app.config['API_KEY'] = api_key
+        app.config["SQLALCHEMY_DATABASE_URI"] = DATABASE_URI
         app.logger.setLevel(logging.CRITICAL)
         init_db(app)
 
     @classmethod
     def tearDownClass(cls):
-        db.session.close()    
+        """Run once after all tests"""
+        db.session.close()
 
     def setUp(self):
-        db.drop_all()
-        db.create_all()
+        """Runs before each test"""
+        db.drop_all()  # clean up the last tests
+        db.create_all()  # create new tables
         self.app = app.test_client()
-        self.headers = {
-            'X-Api-Key': app.config['API_KEY']
-        }
-    
+
     def tearDown(self):
         db.session.remove()
         db.drop_all()
@@ -86,7 +85,7 @@ class TestOrderServer(unittest.TestCase):
         for _ in range(count):
             order = OrderFactory()
             resp = self.app.post(
-                BASE_API, json=order.serialize(), content_type="application/json", headers=self.headers
+                BASE_URL, json=order.serialize(), content_type="application/json"
             )
             self.assertEqual(
                 resp.status_code, status.HTTP_201_CREATED, "Could not create test Order"
@@ -107,7 +106,7 @@ class TestOrderServer(unittest.TestCase):
     def test_get_order_list(self):
         """Get a list of Orders"""
         self._create_order(5)
-        resp = self.app.get(BASE_API)
+        resp = self.app.get(BASE_URL)
         self.assertEqual(resp.status_code, status.HTTP_200_OK)
         data = resp.get_json()
         self.assertEqual(len(data), 5)
@@ -117,7 +116,8 @@ class TestOrderServer(unittest.TestCase):
         # get the id of a order
         test_order = self._create_order(1)[0]
         resp = self.app.get(
-            "{}/{}".format(BASE_API, test_order.id))
+            "/orders/{}".format(test_order.id), content_type=CONTENT_TYPE_JSON
+        )
         self.assertEqual(resp.status_code, status.HTTP_200_OK)
         data = resp.get_json()
         self.assertEqual(data["id"], test_order.id)
@@ -127,16 +127,16 @@ class TestOrderServer(unittest.TestCase):
         resp = self.app.get("/orders/0")
         self.assertEqual(resp.status_code, status.HTTP_404_NOT_FOUND)
 
+
     def test_create_order(self):
         """ Create a new Order """
         # I can't seem to get the ID & Date to be verified? 
 
         order = OrderFactory()
         resp = self.app.post(
-            BASE_API, 
+            BASE_URL, 
             json=order.serialize(), 
-            content_type="application/json", 
-            headers=self.headers
+            content_type="application/json"
         )
         self.assertEqual(resp.status_code, status.HTTP_201_CREATED)
         
@@ -146,10 +146,10 @@ class TestOrderServer(unittest.TestCase):
         
         # Check the data is correct
         new_order = resp.get_json()
-        # self.assertEqual(new_order["id"], order.id, "ID does not match")
+     #   self.assertEqual(new_order["id"], order.id, "ID does not match")
         self.assertEqual(new_order["customer"], order.customer, "Customer does not match")
         self.assertEqual(new_order["status"], order.status, "status does not match")
-        # self.assertEqual(new_order["date"], order.date, "Date does not match")
+    #    self.assertEqual(new_order["date"], order.date, "Date does not match")
 
 
         # Check that the location header was correct by getting it
@@ -163,12 +163,12 @@ class TestOrderServer(unittest.TestCase):
         
     def test_create_order_no_data(self):
         """Create a Order with missing data"""
-        resp = self.app.post(BASE_API, json={}, content_type=CONTENT_TYPE_JSON, headers=self.headers)
+        resp = self.app.post(BASE_URL, json={}, content_type=CONTENT_TYPE_JSON)
         self.assertEqual(resp.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_create_order_no_data(self):
         """Create a Order with missing data"""
-        resp = self.app.post(BASE_API, json={}, content_type=CONTENT_TYPE_JSON, headers=self.headers)
+        resp = self.app.post(BASE_URL, json={}, content_type=CONTENT_TYPE_JSON)
         self.assertEqual(resp.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_update_order(self):
@@ -176,29 +176,16 @@ class TestOrderServer(unittest.TestCase):
         # create a order to update
         test_order = OrderFactory()
         resp = self.app.post(
-            BASE_API, json=test_order.serialize(), content_type="application/json", headers=self.headers
+            BASE_URL, json=test_order.serialize(), content_type=CONTENT_TYPE_JSON
         )
         self.assertEqual(resp.status_code, status.HTTP_201_CREATED)
-
-        # update the order
-        new_order = resp.get_json()
-        logging.debug(new_order)
-        new_order["status"] = "Closed"
-        resp = self.app.put(
-            "{}/{}".format(BASE_API, new_order["id"]),
-            json=new_order,
-            content_type=CONTENT_TYPE_JSON, headers=self.headers
-        )
-        self.assertEqual(resp.status_code, status.HTTP_200_OK)
-        updated_order = resp.get_json()
-        self.assertEqual(updated_order["status"], "Closed")
 
     def test_update_order_bad_id(self):
         """Update an existing Order with bad Order ID"""
         # create a order to update
         test_order = OrderFactory()
         resp = self.app.post(
-            BASE_API, json=test_order.serialize(), content_type=CONTENT_TYPE_JSON, headers=self.headers
+            BASE_URL, json=test_order.serialize(), content_type=CONTENT_TYPE_JSON
         )
         self.assertEqual(resp.status_code, status.HTTP_201_CREATED)
 
@@ -208,10 +195,9 @@ class TestOrderServer(unittest.TestCase):
         new_order["status"] = "Closed"
         resp = self.app.put(
  
-            "{}/{}".format(BASE_API, new_order["id"]),
+            "/orders/{}".format(new_order["id"]),
             json=new_order,
             content_type=CONTENT_TYPE_JSON,
-            headers=self.headers
         )
         self.assertEqual(resp.status_code, status.HTTP_200_OK)
         updated_order = resp.get_json()
@@ -221,23 +207,23 @@ class TestOrderServer(unittest.TestCase):
         """Delete a Order"""
         test_order = self._create_order(1)[0]
         resp = self.app.delete(
-            "{}/{}".format(BASE_API, test_order.id), content_type=CONTENT_TYPE_JSON, headers=self.headers
+            "{0}/{1}".format(BASE_URL, test_order.id), content_type=CONTENT_TYPE_JSON
         )
         self.assertEqual(resp.status_code, status.HTTP_204_NO_CONTENT)
         self.assertEqual(len(resp.data), 0)
         # make sure they are deleted
         resp = self.app.get(
-            "{}/{}".format(BASE_API, test_order.id), content_type=CONTENT_TYPE_JSON, headers=self.headers
+            "{0}/{1}".format(BASE_URL, test_order.id), content_type=CONTENT_TYPE_JSON
         )
         self.assertEqual(resp.status_code, status.HTTP_404_NOT_FOUND)
 
     def test_bad_request(self):
-        """ Send bad request """
+        """ Send wrong media type """
         order = OrderFactory()
         resp = self.app.post(
-            BASE_API, 
+            BASE_URL, 
             json={"name": "not enough data"}, 
-            content_type="application/json", headers=self.headers
+            content_type="application/json"
         )
         self.assertEqual(resp.status_code, status.HTTP_400_BAD_REQUEST)
 
@@ -245,25 +231,24 @@ class TestOrderServer(unittest.TestCase):
         """ Send wrong media type """
         order = OrderFactory()
         resp = self.app.post(
-            BASE_API, 
+            BASE_URL, 
             json=order.serialize(), 
-            content_type="test/html",
-            headers=self.headers
+            content_type="test/html"
         )
         self.assertEqual(resp.status_code, status.HTTP_415_UNSUPPORTED_MEDIA_TYPE)
         
     def test_method_not_allowed(self):
         """ Make an illegal method call """
         resp = self.app.put(
-            BASE_API, 
+            BASE_URL, 
             json={"not": "today"}, 
-            content_type="application/json", headers=self.headers
+            content_type="application/json"
         )
         self.assertEqual(resp.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
 
     def test_get_order_not_found(self):
         """ Get an Order that is not found """
-        resp = self.app.get(f"{BASE_API}/0")
+        resp = self.app.get(f"{BASE_URL}/0")
         self.assertEqual(resp.status_code, status.HTTP_404_NOT_FOUND)
 
     def test_query_order_list_by_customer(self):
@@ -272,7 +257,7 @@ class TestOrderServer(unittest.TestCase):
         test_customer = orders[0].customer
         customer_orders = [order for order in orders if order.customer == test_customer]
         resp = self.app.get(
-            BASE_API, query_string="customer={}".format(quote_plus(test_customer))
+            BASE_URL, query_string="customer={}".format(quote_plus(test_customer))
         )
         self.assertEqual(resp.status_code, status.HTTP_200_OK)
         data = resp.get_json()
@@ -287,7 +272,7 @@ class TestOrderServer(unittest.TestCase):
         test_status = orders[0].status
         status_orders = [order for order in orders if order.status == test_status]
         resp = self.app.get(
-            BASE_API, query_string="status={}".format(quote_plus(test_status))
+            BASE_URL, query_string="status={}".format(quote_plus(test_status))
         )
         self.assertEqual(resp.status_code, status.HTTP_200_OK)
         data = resp.get_json()
@@ -305,9 +290,9 @@ class TestOrderServer(unittest.TestCase):
         order = self._create_order(1)[0]
         order_item = ItemFactory()
         resp = self.app.post(
-            f"{BASE_API}/{order.id}/items",
+            f"{BASE_URL}/{order.id}/items",
             json=order_item.serialize(), 
-            content_type="application/json", headers=self.headers
+            content_type="application/json"
         )
         self.assertEqual(resp.status_code, status.HTTP_201_CREATED)
 
@@ -317,7 +302,7 @@ class TestOrderServer(unittest.TestCase):
 
         # retrieve it back
         resp = self.app.get(
-            f"{BASE_API}/{order.id}/items/{id}",
+            f"{BASE_URL}/{order.id}/items/{id}",
             content_type="application/json"
         )
         self.assertEqual(resp.status_code, status.HTTP_200_OK)
@@ -335,9 +320,9 @@ class TestOrderServer(unittest.TestCase):
         order = self._create_order(1)[0]
         order_item = ItemFactory()
         resp = self.app.post(
-            f"{BASE_API}/{order.id}/items",
+            f"{BASE_URL}/{order.id}/items",
             json=order_item.serialize(), 
-            content_type="application/json", headers=self.headers
+            content_type="application/json"
         )
         self.assertEqual(resp.status_code, status.HTTP_201_CREATED)
         data = resp.get_json()
@@ -354,9 +339,9 @@ class TestOrderServer(unittest.TestCase):
         order = self._create_order(1)[0]
         item = ItemFactory()
         resp = self.app.post(
-            f"{BASE_API}/{order.id}/items", 
+            f"{BASE_URL}/{order.id}/items", 
             json=item.serialize(), 
-            content_type="application/json", headers=self.headers
+            content_type="application/json"
         )
         self.assertEqual(resp.status_code, status.HTTP_201_CREATED)
 
@@ -367,16 +352,16 @@ class TestOrderServer(unittest.TestCase):
 
         # send the update back
         resp = self.app.put(
-            f"{BASE_API}/{order.id}/items/{item_id}",
+            f"{BASE_URL}/{order.id}/items/{item_id}",
             json=data, 
-            content_type="application/json", headers=self.headers
+            content_type="application/json"
         )
         self.assertEqual(resp.status_code, status.HTTP_200_OK)
 
         # retrieve it back
         resp = self.app.get(
-            f"{BASE_API}/{order.id}/items/{item_id}",
-            content_type="application/json", headers=self.headers
+            f"{BASE_URL}/{order.id}/items/{item_id}",
+            content_type="application/json"
         )
         self.assertEqual(resp.status_code, status.HTTP_200_OK)
 
@@ -391,9 +376,9 @@ class TestOrderServer(unittest.TestCase):
         order = self._create_order(1)[0]
         item = ItemFactory()
         resp = self.app.post(
-            f"{BASE_API}/{order.id}/items",
+            f"{BASE_URL}/{order.id}/items",
             json=item.serialize(), 
-            content_type="application/json", headers=self.headers
+            content_type="application/json"
         )
         self.assertEqual(resp.status_code, status.HTTP_201_CREATED)
         data = resp.get_json()
@@ -402,14 +387,16 @@ class TestOrderServer(unittest.TestCase):
 
         # send delete request
         resp = self.app.delete(
-            f"{BASE_API}/{order.id}/items/{item_id}",
-            content_type="application/json", headers=self.headers
+            f"{BASE_URL}/{order.id}/items/{item_id}",
+            content_type="application/json"
         )
         self.assertEqual(resp.status_code, status.HTTP_204_NO_CONTENT)
 
         # retrieve it back and make sure item is not there
         resp = self.app.get(
-            f"{BASE_API}/{order.id}/items/{item_id}")
+            f"{BASE_URL}/{order.id}/items/{item_id}",
+            content_type="application/json"
+        )
         self.assertEqual(resp.status_code, status.HTTP_404_NOT_FOUND)
 
     def test_get_item_list(self):
@@ -420,23 +407,25 @@ class TestOrderServer(unittest.TestCase):
 
         # Create item 1
         resp = self.app.post(
-            f"{BASE_API}/{order.id}/items", 
+            f"{BASE_URL}/{order.id}/items", 
             json=item_list[0].serialize(), 
-            content_type="application/json", headers=self.headers
+            content_type="application/json"
         )
         self.assertEqual(resp.status_code, status.HTTP_201_CREATED)
 
         # Create item 2
         resp = self.app.post(
-            f"{BASE_API}/{order.id}/items",
+            f"{BASE_URL}/{order.id}/items",
             json=item_list[1].serialize(), 
-            content_type="application/json", headers=self.headers
+            content_type="application/json"
         )
         self.assertEqual(resp.status_code, status.HTTP_201_CREATED)
 
         # get the list back and make sure there are 2
         resp = self.app.get(
-            f"{BASE_API}/{order.id}/items")
+            f"{BASE_URL}/{order.id}/items", 
+            content_type="application/json"
+        )
         self.assertEqual(resp.status_code, status.HTTP_200_OK)
 
         data = resp.get_json()
@@ -447,7 +436,9 @@ class TestOrderServer(unittest.TestCase):
         order = self._create_order(1)[0]
         item_list = ItemFactory.create_batch(2)
         resp = self.app.get(
-            f"{BASE_API}/{order.id}/items/0")
+            f"{BASE_URL}/{order.id}/items/0", 
+            content_type="application/json"
+        )
         self.assertEqual(resp.status_code, status.HTTP_404_NOT_FOUND)
 
 ######################################################################
@@ -460,9 +451,9 @@ class TestOrderServer(unittest.TestCase):
         test_order = OrderFactory()
         test_order.status = "Open"
         resp = self.app.post(
-            BASE_API, 
+            BASE_URL, 
             json=test_order.serialize(), 
-            content_type="application/json", headers=self.headers
+            content_type="application/json"
         )
         self.assertEqual(resp.status_code, status.HTTP_201_CREATED)
 
@@ -471,11 +462,11 @@ class TestOrderServer(unittest.TestCase):
         logging.info(f"Created Order with id {order_id} = {data}")
 
         # Request to cancel an Order
-        resp = self.app.put(f"{BASE_API}/{order_id}/cancelled")
+        resp = self.app.put(f"{BASE_URL}/{order_id}/cancelled")
         self.assertEqual(resp.status_code, status.HTTP_200_OK)
 
         # Retrieve the Order and make sure it is no longer available
-        resp = self.app.get(f"{BASE_API}/{order_id}")
+        resp = self.app.get(f"{BASE_URL}/{order_id}")
         self.assertEqual(resp.status_code, status.HTTP_200_OK)
         data = resp.get_json()
         self.assertEqual(data["id"], order_id)
@@ -486,9 +477,9 @@ class TestOrderServer(unittest.TestCase):
         test_order = OrderFactory()
         test_order.status = "Cancelled"
         resp = self.app.post(
-            BASE_API, 
+            BASE_URL, 
             json=test_order.serialize(), 
-            content_type="application/json", headers=self.headers
+            content_type="application/json"
         )
         self.assertEqual(resp.status_code, status.HTTP_201_CREATED)
         
@@ -497,22 +488,10 @@ class TestOrderServer(unittest.TestCase):
         logging.info(f"Created Order with id {order_id} = {data}")
 
         # Request to purchase an Order should fail
-        resp = self.app.put(f"{BASE_API}/{order_id}/cancelled")
+        resp = self.app.put(f"{BASE_URL}/{order_id}/cancelled")
         self.assertEqual(resp.status_code, status.HTTP_409_CONFLICT)
 
     def test_cancel_an_order_not_found(self):
         """Cancel an Order not found"""
-        resp = self.app.put(f"{BASE_API}/0/cancelled")
+        resp = self.app.put(f"{BASE_URL}/0/cancelled")
         self.assertEqual(resp.status_code, status.HTTP_404_NOT_FOUND)
-
-######################################################################
-# Utility functions
-######################################################################
-
-    def get_order_count(self):
-        """ save the current number of orders """
-        resp = self.app.get(BASE_API)
-        self.assertEqual(resp.status_code, status.HTTP_200_OK)
-        data = resp.get_json()
-        logging.debug('get_order_count(data) = %s', data)
-        return len(data)

@@ -58,8 +58,8 @@ db = SQLAlchemy()
 
 def init_db(app):
     """Initialize the SQLAlchemy app"""
-    Order.init_db(app)         # Main Orders DB
-    items.init_db(app)    # items DB (related via Order_ID)
+    Order.init_db(app)      # Main Orders DB
+    items.init_db(app)      # items DB (related via Order_ID)
 
 class DatabaseConnectionError(Exception):
     """Custom Exception when database connection fails"""
