@@ -66,7 +66,8 @@ Scenario: Delete a Order
     And I should see "10" in the "total" field
     When I press the "Delete" button
     Then I should see the message "Order has been Deleted!"
-    When I press the "Search" button
+    When I press the "clear" button
+    And I press the "Search" button
     Then I should not see "Yoda" in the results
 
 Scenario: Update a Order
