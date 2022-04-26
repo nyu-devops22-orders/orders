@@ -11,14 +11,6 @@ BASE_URL = os.getenv('BASE_URL', 'http://localhost:8080')
 
 def before_all(context):
     """ Executed once before all tests """
-    context.driver = webdriver.PhantomJS()
-    context.driver.set_window_size(1120, 550)
-    context.base_url = BASE_URL
-
-
-
-def before_all(context):
-    """ Executed once before all tests """
     options = webdriver.ChromeOptions()
     options.add_argument("start-maximized") # open Browser in maximized mode
     options.add_argument("disable-infobars") # disabling infobars
