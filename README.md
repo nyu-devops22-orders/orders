@@ -9,7 +9,7 @@
  3 | Deploy To Cloud                          | Complete   
  4 | Implement A Ui W/ Automated Testing      | Complete   
  5 | Refactor Using Flask-Restx And Swagger   | Complete 
- 6 | Build An Automated Ci/cd Devops Pipeline | Incomplete 
+ 6 | Build An Automated Ci/cd Devops Pipeline | Complete
 ```
 ## Installation
 1. Navigate to your local DevOps folder
